@@ -1,6 +1,6 @@
 # libsrd5-examples-unity
 
-A very simple example of how to integrate libsrd5 in a Unity3D project.
+A very simple example of how to integrate libsrd5 in a Unity3D project. WebGL Live Demo at (https://kupka.github.io/libsrd5-examples/unity/index.html)
 
 # Disclaimer
 

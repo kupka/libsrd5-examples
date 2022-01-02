@@ -1834,8 +1834,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -322.9279, y: -168.4}
-  m_SizeDelta: {x: 370.832, y: 302.93}
+  m_AnchoredPosition: {x: -322.9279, y: -1}
+  m_SizeDelta: {x: 370.832, y: 640}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1401734317
 MonoBehaviour:
@@ -1859,7 +1859,7 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 12800000, guid: 2a732b7c8c4542e4db1c3611ff14d9f9, type: 3}
-    m_FontSize: 30
+    m_FontSize: 20
     m_FontStyle: 0
     m_BestFit: 0
     m_MinSize: 1
@@ -1870,14 +1870,9 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: '1. Create a Character
+  m_Text: '1. Lorem Ipsum
 
-    2. Delete a Character
-
-    3. Equip / Prepare
-    a Chracter
-
-    4. Start a battle'
+    2. Dolor sit amet'
 --- !u!222 &1401734318
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2252,7 +2247,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: New Text
+  m_Text: 123456789 123456789 123456789 123456789 123456789 123456
 --- !u!222 &1805471565
 CanvasRenderer:
   m_ObjectHideFlags: 0

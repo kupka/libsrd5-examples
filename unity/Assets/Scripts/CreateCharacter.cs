@@ -15,13 +15,17 @@ public class CreateCharacter : MonoBehaviour, KeyInputReceiver {
 
     public GameObject NameInput;
 
+    public Image CharacterImage;
+
+    public Sprite Elf, Dwarf;
+
     private Race selectedRace = Race.HILL_DWARF;
     private CreateCharacterState state = CreateCharacterState.DEFAULT;
 
     private const string DEFAULT_TEXT = "1. Select Race\n2. Re-Roll Abilities\n3. Chose Class";
     private const string RACE_SELECTION_TEXT = "1. Hill Dwarf\n2. High Elf";
     private const string CLASS_SELECTION_TEXT = "1. Barbarian\n2. Druid";
-    private const string DONE_TEXT = "1. Accept Character\n2. Cancel";
+    private const string DONE_TEXT = "1. Accept Character\n0. Cancel";
     private CharacterSheet hero;
 
     // Start is called before the first frame update
@@ -34,7 +38,14 @@ public class CreateCharacter : MonoBehaviour, KeyInputReceiver {
                 NameInput.GetComponent<InputField>().text = "";
                 NameInput.GetComponent<InputField>().placeholder.GetComponent<Text>().text = "Too long";
             } else {
-                hero.SetName(value);
+                foreach (CharacterSheet sheet in Game.Characters) {
+                    if (sheet.Name == value) {
+                        NameInput.GetComponent<InputField>().text = "";
+                        NameInput.GetComponent<InputField>().placeholder.GetComponent<Text>().text = "Already taken";
+                        return;
+                    }
+                }
+                hero.Name = value;
                 Game.Characters.Add(hero);
                 SceneManager.LoadScene("MainMenu", LoadSceneMode.Single);
             }
@@ -64,11 +75,13 @@ public class CreateCharacter : MonoBehaviour, KeyInputReceiver {
                 selectedRace = Race.HILL_DWARF;
                 state = CreateCharacterState.DEFAULT;
                 MenuText.text = DEFAULT_TEXT;
+                CharacterImage.sprite = Dwarf;
                 reRollAbilities();
             } else if (key == KeyCode.Alpha2) {
                 selectedRace = Race.HIGH_ELF;
                 state = CreateCharacterState.DEFAULT;
                 MenuText.text = DEFAULT_TEXT;
+                CharacterImage.sprite = Elf;
                 reRollAbilities();
             }
         } else if (state == CreateCharacterState.CHOSE_CLASS) {
@@ -87,7 +100,7 @@ public class CreateCharacter : MonoBehaviour, KeyInputReceiver {
             if (key == KeyCode.Alpha1) {
                 NameInput.SetActive(true);
                 NameInput.GetComponent<InputField>().Select();
-            } else if (key == KeyCode.Alpha2) {
+            } else if (key == KeyCode.Alpha0) {
                 SceneManager.LoadScene("MainMenu");
             }
         }

@@ -5,6 +5,6 @@ Examples of libsrd5 usage in Blazor/WASM and Unity3D
 
 Live Demo at (https://kupka.github.io/libsrd5-examples/unity/index.html)
 
-# Blzaor
+# Blazor
 
 Not yet available.

@@ -9,32 +9,29 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
     public Text MenuText, CombatLog;
     public Image HeroFront1, HeroFront2, HeroBack1, HeroBack2;
     private int heroFront1 = -1, heroFront2 = -1, heroBack1 = -1, heroBack2 = -1;
-    public Image Orc1, Orc2, Orc3;
-    public Image Ogre1, Ogre2;
+    public Image[] LargeEnemies, MediumEnemies;
+    public Sprite[] DwarfBarbarianSprites, DwarfDruidSprites, ElfBarbarianSprites, ElfDruidSprites;
+    public Sprite[] BoarSprites, OrcSprites, OgreSprites;
 
-    public Sprite ElfBerserker, ElfBerserkerAttack, ElfBersekerDefend;
-    public Sprite DwarfBerserker, DwarfBerserkerAttack, DwarfBeserkerDefend;
-    public Sprite ElfDruid, ElfDruidAttack, ElfDruidDefend;
-    public Sprite DwarfDruid, DwarfDruidAttack, DwarfDruidDefend;
-    public Sprite Orc, OrcAttack, OrcDefend;
-    public Sprite Ogre, OgreAttack, OgreDefend;
-
-    private Monster orc1 = Monsters.Orc, orc2 = Monsters.Orc, orc3 = Monsters.Orc;
-    private Monster ogre1 = Monsters.Ogre, ogre2 = Monsters.Ogre;
+    private Monster[] enemies = new Monster[2];
     private BattleGroundClassic ground = new BattleGroundClassic();
     private FixedSizedQueue<string> logQueue = new FixedSizedQueue<string>(11);
     private float timer;
     private bool waitForTimer = false;
 
     private const string DEFAULT_TEXT = "Waiting for enemies...";
+
+    private const string ATTACK_BOARS =
+@"1. Attack first Boar
+2. Attack scond Boar";
+
     private const string ATTACK_ORCS =
-    @"1. Attack first Orc
-    2. Attack second Orc
-    3. Attack third Orc";
+@"1. Attack first Orc
+2. Attack second Orc";
 
     private const string ATTACK_OGRES =
 @"1. Attack first Ogre
-    2. Attack second Ogre";
+2. Attack second Ogre";
 
     private const string WON =
 @"You won!
@@ -57,22 +54,10 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
     public void KeyPressHandler(KeyCode code) {
         if (state == CombatState.YOUR_TURN) {
             Combattant target = null;
-            if (Game.Scene == Game.CombatScene.ORCS) {
-                if (Input.GetKeyUp(KeyCode.Alpha1)) {
-                    target = orc1;
-                } else if (Input.GetKeyUp(KeyCode.Alpha2)) {
-                    target = orc2;
-                } else if (Input.GetKeyUp(KeyCode.Alpha3)) {
-                    target = orc3;
-                }
-            } else if (Game.Scene == Game.CombatScene.OGRES) {
-                if (Input.GetKeyUp(KeyCode.Alpha1)) {
-                    target = orc1;
-                } else if (Input.GetKeyUp(KeyCode.Alpha2)) {
-                    target = orc2;
-                } else if (Input.GetKeyUp(KeyCode.Alpha3)) {
-                    target = orc3;
-                }
+            if (Input.GetKeyUp(KeyCode.Alpha1)) {
+                target = enemies[0];
+            } else if (Input.GetKeyUp(KeyCode.Alpha2)) {
+                target = enemies[1];
             }
             if (target == null || target.HitPoints <= 0) return;
             ground.MeleeAttackAction(target);
@@ -108,12 +93,6 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
             }
         };
 
-        orc1.Name = "Orc1";
-        orc2.Name = "Orc2";
-        orc3.Name = "Orc3";
-        ogre1.Name = "Ogre1";
-        ogre2.Name = "Ogre2";
-
         int i = 0;
         int front = 0;
         int back = 0;
@@ -140,25 +119,32 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
             i++;
         }
 
-        if (Game.Scene == Game.CombatScene.ORCS) {
-            Orc1.gameObject.SetActive(true);
-            Orc2.gameObject.SetActive(true);
-            Orc3.gameObject.SetActive(true);
-            ground.AddCombattant(orc1, ClassicLocation.Row.FRONT);
-            ground.AddCombattant(orc2, ClassicLocation.Row.FRONT);
-            ground.AddCombattant(orc3, ClassicLocation.Row.FRONT);
-            combattants.Add(orc1.Name, new CombattantData(orc1, Orc1, Orc, OrcAttack, OrcDefend));
-            combattants.Add(orc2.Name, new CombattantData(orc2, Orc2, Orc, OrcAttack, OrcDefend));
-            combattants.Add(orc3.Name, new CombattantData(orc3, Orc3, Orc, OrcAttack, OrcDefend));
+        Sprite[] enemySprites = null;
+        Image[] enemyImages = null;
+        if (Game.Scene == Game.CombatScene.BOARS) {
+            enemies[0] = Monsters.Boar;
+            enemies[1] = Monsters.Boar;
+            enemySprites = BoarSprites;
+            enemyImages = MediumEnemies;
         } else if (Game.Scene == Game.CombatScene.OGRES) {
-            Ogre1.gameObject.SetActive(true);
-            Ogre2.gameObject.SetActive(true);
-            ground.AddCombattant(ogre1, ClassicLocation.Row.FRONT);
-            ground.AddCombattant(ogre2, ClassicLocation.Row.FRONT);
-            combattants.Add(ogre1.Name, new CombattantData(ogre1, Ogre1, Ogre, OgreAttack, OgreDefend));
-            combattants.Add(ogre2.Name, new CombattantData(ogre2, Ogre2, Ogre, OgreAttack, OgreDefend));
+            enemies[0] = Monsters.Ogre;
+            enemies[1] = Monsters.Ogre;
+            enemySprites = OgreSprites;
+            enemyImages = LargeEnemies;
+        } else if (Game.Scene == Game.CombatScene.ORCS) {
+            enemies[0] = Monsters.Orc;
+            enemies[1] = Monsters.Orc;
+            enemySprites = OrcSprites;
+            enemyImages = MediumEnemies;
         }
 
+        for (i = 0; i < enemies.Length; i++) {
+            enemyImages[i].gameObject.SetActive(true);
+            enemyImages[i].sprite = enemySprites[0];
+            ground.AddCombattant(enemies[i], ClassicLocation.Row.FRONT);
+            enemies[i].Name += " #" + i;
+            combattants.Add(enemies[i].Name, new CombattantData(enemies[i], enemyImages[i], enemySprites));
+        }
         ground.Initialize();
         timer = 2.0f;
         waitForTimer = true;
@@ -168,19 +154,19 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
         heroImage.gameObject.SetActive(true);
         if (hero.Race.Race == Race.HILL_DWARF) {
             if (hero.Levels[0].Class.Class == Class.BARBARIAN) {
-                heroImage.sprite = DwarfBerserker;
-                combattants.Add(hero.Name, new CombattantData(hero, heroImage, DwarfBerserker, DwarfBerserkerAttack, DwarfBeserkerDefend));
+                heroImage.sprite = DwarfBarbarianSprites[0];
+                combattants.Add(hero.Name, new CombattantData(hero, heroImage, DwarfBarbarianSprites));
             } else if (hero.Levels[0].Class.Class == Class.DRUID) {
-                heroImage.sprite = DwarfDruid;
-                combattants.Add(hero.Name, new CombattantData(hero, heroImage, DwarfDruid, DwarfDruidAttack, DwarfDruidDefend));
+                heroImage.sprite = DwarfDruidSprites[0];
+                combattants.Add(hero.Name, new CombattantData(hero, heroImage, DwarfDruidSprites));
             }
         } else if (hero.Race.Race == Race.HIGH_ELF) {
             if (hero.Levels[0].Class.Class == Class.BARBARIAN) {
-                heroImage.sprite = ElfBerserker;
-                combattants.Add(hero.Name, new CombattantData(hero, heroImage, ElfBerserker, ElfBerserkerAttack, ElfBersekerDefend));
+                heroImage.sprite = ElfBarbarianSprites[0];
+                combattants.Add(hero.Name, new CombattantData(hero, heroImage, ElfBarbarianSprites));
             } else if (hero.Levels[0].Class.Class == Class.DRUID) {
-                heroImage.sprite = ElfDruid;
-                combattants.Add(hero.Name, new CombattantData(hero, heroImage, ElfDruid, ElfDruidAttack, ElfDruidDefend));
+                heroImage.sprite = ElfDruidSprites[0];
+                combattants.Add(hero.Name, new CombattantData(hero, heroImage, ElfDruidSprites));
             }
         }
     }
@@ -208,9 +194,14 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
                     MenuText.text = ATTACK_ORCS;
                 else if (Game.Scene == Game.CombatScene.OGRES)
                     MenuText.text = ATTACK_OGRES;
+                else if (Game.Scene == Game.CombatScene.BOARS)
+                    MenuText.text = ATTACK_BOARS;
             }
             return;
-        };
+        } else if (ground.CurrentCombattant.HitPoints <= 0) {
+            nextPhase();
+            return;
+        }
         // select target
         CharacterSheet target = null;
         bool useRanged = false;
@@ -233,6 +224,7 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
         if (useRanged) {
             // TODO: Implement Ranged Combat
         } else {
+            log(String.Format("{0} with bonus {1} against AC {2}", ground.CurrentCombattant.Name, ground.CurrentCombattant.MeleeAttacks[0].AttackBonus, target.ArmorClass));
             ground.MeleeAttackAction(target);
             timer = 2.0f;
             waitForTimer = true;

@@ -39,10 +39,10 @@ public class ModifyCharacter : MonoBehaviour, KeyInputReceiver {
 
     private const string EQUIP_MELEE_WEAPONS =
 @"1. Club
-2. Quarterstaff
-3. Shield (Buckler)
+2. Quarterstaff (Versatile)
+3. Shield (Offhand)
 4. Handaxe
-5. Greatclub
+5. Greatclub (Both Hands)
 0. Return";
 
     private const string EQUIP_RANGED_WEAPONS =
@@ -238,7 +238,7 @@ public class ModifyCharacter : MonoBehaviour, KeyInputReceiver {
                     hero.Unequip(hero.Inventory.MainHand);
                 hero.Equip(new Thing<Weapon>(Weapons.Quarterstaff));
             } else if (code == KeyCode.Alpha3) {
-                hero.Equip(new Thing<Shield>(Shields.Buckler));
+                hero.Equip(new Thing<Shield>(Shields.Shield));
             } else if (code == KeyCode.Alpha4) {
                 if (hero.Inventory.MainHand != null)
                     hero.Unequip(hero.Inventory.MainHand);

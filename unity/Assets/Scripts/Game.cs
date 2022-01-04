@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 public static class Game {
     public enum CombatScene {
+        BOARS,
         ORCS,
         OGRES
     }
@@ -43,9 +44,9 @@ public struct CombattantData {
     public Image Image;
     public Sprite[] Sprites;
 
-    public CombattantData(Combattant combattant, Image image, Sprite idle, Sprite attack, Sprite defend) {
+    public CombattantData(Combattant combattant, Image image, Sprite[] sprites) {
         Combattant = combattant;
         Image = image;
-        Sprites = new Sprite[] { idle, attack, defend };
+        Sprites = sprites;
     }
 }

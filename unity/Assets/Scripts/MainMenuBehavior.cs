@@ -34,8 +34,9 @@ public class MainMenuBehavior : MonoBehaviour, KeyInputReceiver {
 
     private const string BATTLE_TEXT =
 @"Make sure you equipped your heroes properly before engaging the enemy!
-1. Band of Orcs (easy)
-2. Ogre Brutes (hard)
+1. Boars (easy)
+2. Orcs (medium)
+3. Ogres (hard)
 0. Return";
 
     private const string TOO_MANY_CHARACTERS =
@@ -144,9 +145,12 @@ public class MainMenuBehavior : MonoBehaviour, KeyInputReceiver {
                 state = MainMenuState.DEFAULT;
                 MenuText.text = DEFAULT_TEXT;
             } else if (code == KeyCode.Alpha1) {
-                Game.Scene = Game.CombatScene.ORCS;
+                Game.Scene = Game.CombatScene.BOARS;
                 SceneManager.LoadScene("Combat");
             } else if (code == KeyCode.Alpha2) {
+                Game.Scene = Game.CombatScene.ORCS;
+                SceneManager.LoadScene("Combat");
+            } else if (code == KeyCode.Alpha3) {
                 Game.Scene = Game.CombatScene.OGRES;
                 SceneManager.LoadScene("Combat");
             }

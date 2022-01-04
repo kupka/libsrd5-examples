@@ -13,11 +13,11 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
     public Sprite[] DwarfBarbarianSprites, DwarfDruidSprites, ElfBarbarianSprites, ElfDruidSprites;
     public Sprite[] BoarSprites, OrcSprites, OgreSprites;
 
-    private Monster[] enemies = new Monster[2];
-    private BattleGroundClassic ground = new BattleGroundClassic();
-    private FixedSizedQueue<string> logQueue = new FixedSizedQueue<string>(11);
+    private Monster[] enemies;
+    private BattleGroundClassic ground;
+    private FixedSizedQueue<string> logQueue;
     private float timer;
-    private bool waitForTimer = false;
+    private bool waitForTimer;
 
     private const string DEFAULT_TEXT = "Waiting for enemies...";
 
@@ -52,6 +52,7 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
     private Dictionary<string, CombattantData> combattants = new Dictionary<string, CombattantData>();
 
     public void KeyPressHandler(KeyCode code) {
+        if (waitForTimer) return;
         if (state == CombatState.YOUR_TURN) {
             Combattant target = null;
             if (Input.GetKeyUp(KeyCode.Alpha1)) {
@@ -66,33 +67,44 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
             setAttackDefendSprites(ground.CurrentCombattant, target);
         } else if (state == CombatState.WON || state == CombatState.LOST) {
             if (Input.GetKeyUp(KeyCode.Alpha0)) {
+                foreach (CharacterSheet hero in Game.Characters) {
+                    hero.HealDamage(1000);
+                }
+                GlobalEvents.Handlers -= combatLogListener;
                 SceneManager.LoadScene("MainMenu");
             }
         }
     }
 
+    private void combatLogListener(object sender, EventArgs args) {
+        if (GlobalEvents.EventTypes.INITIATIVE.Equals(sender)) {
+            GlobalEvents.InitiativeRolled initiative = (GlobalEvents.InitiativeRolled)args;
+            log(String.Format("{0} rolled for initiative: {1,2}", initiative.Roller.Name, initiative.Result));
+        } else if (GlobalEvents.EventTypes.ATTACKED.Equals(sender)) {
+            GlobalEvents.AttackRolled attacked = (GlobalEvents.AttackRolled)args;
+            String crit = attacked.CriticalHit ? " CRITICAL HIT!" : "";
+            log(String.Format("{0} attacked {1}: {2,2}{3}", attacked.Attacker.Name, attacked.Target.Name, attacked.Roll, crit));
+        } else if (GlobalEvents.EventTypes.HEALED.Equals(sender)) {
+            GlobalEvents.HealingReceived healed = (GlobalEvents.HealingReceived)args;
+            log(String.Format("{0} was healed for {1} hitpoints", healed.Beneficiary.Name, healed.Amount));
+        } else if (GlobalEvents.EventTypes.DAMAGED.Equals(sender)) {
+            GlobalEvents.DamageReceived damaged = (GlobalEvents.DamageReceived)args;
+            log(String.Format("{0} was hit for {1} points of {2} damage", damaged.Victim.Name, damaged.Amount, damaged.DamageType.Name()));
+        } else {
+            Debug.Log("Unexpected Event.");
+        }
+    }
+
+
     // Start is called before the first frame update
     void Start() {
+        enemies = new Monster[2];
+        ground = new BattleGroundClassic();
+        waitForTimer = false;
         MenuText.text = DEFAULT_TEXT;
-        GlobalEvents.Handlers += delegate (object sender, EventArgs args) {
-            if (GlobalEvents.EventTypes.INITIATIVE.Equals(sender)) {
-                GlobalEvents.InitiativeRolled initiative = (GlobalEvents.InitiativeRolled)args;
-                log(String.Format("{0} rolled for initiative: {1,2}", initiative.Roller.Name, initiative.Result));
-            } else if (GlobalEvents.EventTypes.ATTACKED.Equals(sender)) {
-                GlobalEvents.AttackRolled attacked = (GlobalEvents.AttackRolled)args;
-                String crit = attacked.CriticalHit ? " CRITICAL HIT!" : "";
-                log(String.Format("{0} attacked {1}: {2,2}{3}", attacked.Attacker.Name, attacked.Target.Name, attacked.Roll, crit));
-            } else if (GlobalEvents.EventTypes.HEALED.Equals(sender)) {
-                GlobalEvents.HealingReceived healed = (GlobalEvents.HealingReceived)args;
-                log(String.Format("{0} was healed for {1} hitpoints", healed.Beneficiary.Name, healed.Amount));
-            } else if (GlobalEvents.EventTypes.DAMAGED.Equals(sender)) {
-                GlobalEvents.DamageReceived damaged = (GlobalEvents.DamageReceived)args;
-                log(String.Format("{0} was hit for {1} points of {2} damage", damaged.Victim.Name, damaged.Amount, damaged.DamageType.Name()));
-            } else {
-                Debug.Log("Unexpected Event.");
-            }
-        };
+        logQueue = new FixedSizedQueue<string>(11);
 
+        GlobalEvents.Handlers += combatLogListener;
         int i = 0;
         int front = 0;
         int back = 0;
@@ -183,6 +195,7 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
 
     private void nextPhase() {
         clearAttackDefendSprites();
+        if (state == CombatState.WON || state == CombatState.LOST) return;
         for (TurnPhase phase = ground.NextPhase(); phase != TurnPhase.ACTION; phase = ground.NextPhase()) ;
         if (ground.CurrentCombattant is CharacterSheet) {
             if (ground.CurrentCombattant.HitPoints <= 0) {
@@ -224,7 +237,6 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
         if (useRanged) {
             // TODO: Implement Ranged Combat
         } else {
-            log(String.Format("{0} with bonus {1} against AC {2}", ground.CurrentCombattant.Name, ground.CurrentCombattant.MeleeAttacks[0].AttackBonus, target.ArmorClass));
             ground.MeleeAttackAction(target);
             timer = 2.0f;
             waitForTimer = true;

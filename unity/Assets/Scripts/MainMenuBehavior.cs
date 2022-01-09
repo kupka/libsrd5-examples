@@ -18,7 +18,7 @@ public class MainMenuBehavior : MonoBehaviour, KeyInputReceiver {
     private MainMenuState state = MainMenuState.DEFAULT;
 
     private const string DEFAULT_TEXT =
-@"Since spellcasting and ranged combat isn't implemented yet, only 2 characters can be created.
+@"Remember to equip ranged weapons to characters in the back and prepare spells for casters.
 
 1. Create a Character
 2. Delete a Character
@@ -58,7 +58,7 @@ public class MainMenuBehavior : MonoBehaviour, KeyInputReceiver {
     public void KeyPressHandler(KeyCode code) {
         if (state == MainMenuState.DEFAULT) {
             if (code == KeyCode.Alpha1) {
-                if (Game.Characters.Count >= 2) {
+                if (Game.Characters.Count >= 4) {
                     MenuText.text = TOO_MANY_CHARACTERS;
                     state = MainMenuState.RETURN_ONLY;
                 } else {

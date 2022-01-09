@@ -159,10 +159,7 @@ public class ModifyCharacter : MonoBehaviour, KeyInputReceiver {
         foreach (AvailableSpells spells in hero.AvailableSpells) {
             foreach (Spell spell in spells.PreparedSpells) {
                 String name = spell.Name;
-                if (name.Length > 25)
-                    name = name.Substring(0, 22) + "...";
-                else
-                    name += new string(' ', 25 - name.Length);
+                Game.StringPad(ref name, 25);
                 CharacterText.text += String.Format("{0}", name);
                 if (i++ % 2 == 1)
                     CharacterText.text += "\n";
@@ -186,6 +183,7 @@ public class ModifyCharacter : MonoBehaviour, KeyInputReceiver {
     public void KeyPressHandler(KeyCode code) {
         if (state == ModifyCharacterState.DEFAULT) {
             if (code == KeyCode.Alpha0) {
+                hero.LongRest();
                 SceneManager.LoadScene("MainMenu");
             } else if (code == KeyCode.Alpha1 || code == KeyCode.Alpha2) {
                 if (code == KeyCode.Alpha1)
@@ -232,19 +230,19 @@ public class ModifyCharacter : MonoBehaviour, KeyInputReceiver {
             } else if (code == KeyCode.Alpha1) {
                 if (hero.Inventory.MainHand != null)
                     hero.Unequip(hero.Inventory.MainHand);
-                hero.Equip(new Thing<Weapon>(Weapons.Club));
+                hero.Equip(Weapons.Club);
             } else if (code == KeyCode.Alpha2) {
                 if (hero.Inventory.MainHand != null)
                     hero.Unequip(hero.Inventory.MainHand);
-                hero.Equip(new Thing<Weapon>(Weapons.Quarterstaff));
+                hero.Equip(Weapons.Quarterstaff);
             } else if (code == KeyCode.Alpha3) {
-                hero.Equip(new Thing<Shield>(Shields.Shield));
+                hero.Equip(Shields.Shield);
             } else if (code == KeyCode.Alpha4) {
                 if (hero.Inventory.MainHand != null)
                     hero.Unequip(hero.Inventory.MainHand);
-                hero.Equip(new Thing<Weapon>(Weapons.Handaxe));
+                hero.Equip(Weapons.Handaxe);
             } else if (code == KeyCode.Alpha5) {
-                hero.Equip(new Thing<Weapon>(Weapons.Greatclub));
+                hero.Equip(Weapons.Greatclub);
             }
             displayAbilitiesAndAttacks();
         } else if (state == ModifyCharacterState.EQUIP_RANGED_WEAPONS) {
@@ -252,9 +250,9 @@ public class ModifyCharacter : MonoBehaviour, KeyInputReceiver {
                 state = ModifyCharacterState.DEFAULT;
                 MenuText.text = DEFAULT_TEXT;
             } else if (code == KeyCode.Alpha1) {
-                hero.Equip(new Thing<Weapon>(Weapons.Shortbow));
+                hero.Equip(Weapons.Shortbow);
             } else if (code == KeyCode.Alpha2) {
-                hero.Equip(new Thing<Weapon>(Weapons.Longbow));
+                hero.Equip(Weapons.Longbow);
             }
             displayAbilitiesAndAttacks();
         } else if (state == ModifyCharacterState.EQUIP_ARMOR) {
@@ -262,13 +260,13 @@ public class ModifyCharacter : MonoBehaviour, KeyInputReceiver {
                 state = ModifyCharacterState.DEFAULT;
                 MenuText.text = DEFAULT_TEXT;
             } else if (code == KeyCode.Alpha1) {
-                hero.Equip(new Thing<Armor>(Armors.PaddedArmor));
+                hero.Equip(Armors.PaddedArmor);
             } else if (code == KeyCode.Alpha2) {
-                hero.Equip(new Thing<Armor>(Armors.LeatherArmor));
+                hero.Equip(Armors.LeatherArmor);
             } else if (code == KeyCode.Alpha3) {
-                hero.Equip(new Thing<Armor>(Armors.StuddedLeatherArmor));
+                hero.Equip(Armors.StuddedLeatherArmor);
             } else if (code == KeyCode.Alpha4) {
-                hero.Equip(new Thing<Armor>(Armors.HideArmor));
+                hero.Equip(Armors.HideArmor);
             }
             displayAbilitiesAndAttacks();
         } else if (state == ModifyCharacterState.PREPARE_SPELLS) {

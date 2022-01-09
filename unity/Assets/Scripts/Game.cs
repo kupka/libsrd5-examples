@@ -15,6 +15,13 @@ public static class Game {
     public static int FrontLineChar1 = 0, FrontLineChar2 = 1;
 
     public static CombatScene Scene = CombatScene.ORCS;
+
+    public static void StringPad(ref string s, int length) {
+        if (s.Length > length)
+            s = s.Substring(0, length - 3) + "...";
+        else
+            s += new string(' ', length - s.Length);
+    }
 }
 
 public class FixedSizedQueue<T> {
@@ -43,10 +50,12 @@ public struct CombattantData {
     public Combattant Combattant;
     public Image Image;
     public Sprite[] Sprites;
+    public Dictionary<ConditionType, Image> ConditionIcons;
 
     public CombattantData(Combattant combattant, Image image, Sprite[] sprites) {
         Combattant = combattant;
         Image = image;
         Sprites = sprites;
+        ConditionIcons = new Dictionary<ConditionType, Image>();
     }
 }

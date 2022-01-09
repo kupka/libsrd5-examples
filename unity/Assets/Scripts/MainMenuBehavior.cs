@@ -18,7 +18,7 @@ public class MainMenuBehavior : MonoBehaviour, KeyInputReceiver {
     private MainMenuState state = MainMenuState.DEFAULT;
 
     private const string DEFAULT_TEXT =
-@"Since spellcasting and ranged combat isn't implemented yet, only 2 characters can be created.
+@"Remember to equip ranged weapons to characters in the back and prepare spells for casters.
 
 1. Create a Character
 2. Delete a Character
@@ -34,8 +34,9 @@ public class MainMenuBehavior : MonoBehaviour, KeyInputReceiver {
 
     private const string BATTLE_TEXT =
 @"Make sure you equipped your heroes properly before engaging the enemy!
-1. Band of Orcs (easy)
-2. Ogre Brutes (hard)
+1. Boars (easy)
+2. Orcs (medium)
+3. Ogres (hard)
 0. Return";
 
     private const string TOO_MANY_CHARACTERS =
@@ -57,7 +58,7 @@ public class MainMenuBehavior : MonoBehaviour, KeyInputReceiver {
     public void KeyPressHandler(KeyCode code) {
         if (state == MainMenuState.DEFAULT) {
             if (code == KeyCode.Alpha1) {
-                if (Game.Characters.Count >= 2) {
+                if (Game.Characters.Count >= 4) {
                     MenuText.text = TOO_MANY_CHARACTERS;
                     state = MainMenuState.RETURN_ONLY;
                 } else {
@@ -144,9 +145,12 @@ public class MainMenuBehavior : MonoBehaviour, KeyInputReceiver {
                 state = MainMenuState.DEFAULT;
                 MenuText.text = DEFAULT_TEXT;
             } else if (code == KeyCode.Alpha1) {
-                Game.Scene = Game.CombatScene.ORCS;
+                Game.Scene = Game.CombatScene.BOARS;
                 SceneManager.LoadScene("Combat");
             } else if (code == KeyCode.Alpha2) {
+                Game.Scene = Game.CombatScene.ORCS;
+                SceneManager.LoadScene("Combat");
+            } else if (code == KeyCode.Alpha3) {
                 Game.Scene = Game.CombatScene.OGRES;
                 SceneManager.LoadScene("Combat");
             }

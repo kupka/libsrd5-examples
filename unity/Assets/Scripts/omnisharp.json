@@ -1,0 +1,9 @@
+{
+    "fileOptions": {
+        "userExcludeSearchPatterns": [
+            "Library",
+            "obj",
+            "Temp"
+        ]
+    }
+}

@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageId>libsrd5-examples-unity</PackageId>
+    <Version>0.1.0</Version>
+    <Authors>Thomas Kupka</Authors>
+    <Company>Thomas Kupka</Company>
+    <RepositoryUrl>https://github.com/kupka/libsrd5-examples</RepositoryUrl>
+    <PackageTags>game dnd dungeons-and-dragons dnd5e srd</PackageTags>
+    <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
+    <Description>
+        Example usage of libsrd5 in a Unity3D project.
+    </Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+      <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+        <_Parameter1>$(MSBuildProjectName).tests</_Parameter1>
+      </AssemblyAttribute>
+      <Reference Include="srd5">
+        <HintPath>libsrd5.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.UI">
+        <HintPath>..\..\Library\ScriptAssemblies\UnityEngine.UI.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.CoreModule">
+        <HintPath>$(UNITY_PATH)\Editor\Data\Managed\UnityEngine\UnityEngine.CoreModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.InputLegacyModule">
+        <HintPath>$(UNITY_PATH)\Editor\Data\Managed\UnityEngine\UnityEngine.InputLegacyModule.dll</HintPath>
+      </Reference>
+  </ItemGroup>
+</Project>

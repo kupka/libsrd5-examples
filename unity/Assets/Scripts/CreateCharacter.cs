@@ -22,10 +22,23 @@ public class CreateCharacter : MonoBehaviour, KeyInputReceiver {
     private Race selectedRace = Race.HILL_DWARF;
     private CreateCharacterState state = CreateCharacterState.DEFAULT;
 
-    private const string DEFAULT_TEXT = "1. Select Race\n2. Re-Roll Abilities\n3. Chose Class";
-    private const string RACE_SELECTION_TEXT = "1. Hill Dwarf\n2. High Elf";
-    private const string CLASS_SELECTION_TEXT = "1. Barbarian\n2. Druid";
-    private const string DONE_TEXT = "1. Accept Character\n0. Cancel";
+    private const string DEFAULT_TEXT =
+@"1. Select Race
+2. Re-Roll Abilities
+3. Chose Class
+0. Back to Menu";
+    private const string RACE_SELECTION_TEXT =
+@"1. Hill Dwarf
+2. High Elf
+0. Back";
+    private const string CLASS_SELECTION_TEXT =
+@"1. Barbarian
+2. Druid
+0. Back";
+
+    private const string DONE_TEXT =
+@"1. Accept Character
+0. Back";
     private CharacterSheet hero;
 
     // Start is called before the first frame update
@@ -61,7 +74,9 @@ public class CreateCharacter : MonoBehaviour, KeyInputReceiver {
 
     public void KeyPressHandler(KeyCode key) {
         if (state == CreateCharacterState.DEFAULT) {
-            if (key == KeyCode.Alpha1) {
+            if (key == KeyCode.Alpha0) {
+                SceneManager.LoadScene("MainMenu");
+            } else if (key == KeyCode.Alpha1) {
                 state = CreateCharacterState.CHOSE_RACE;
                 MenuText.text = RACE_SELECTION_TEXT;
             } else if (key == KeyCode.Alpha2) {
@@ -71,7 +86,10 @@ public class CreateCharacter : MonoBehaviour, KeyInputReceiver {
                 MenuText.text = CLASS_SELECTION_TEXT;
             }
         } else if (state == CreateCharacterState.CHOSE_RACE) {
-            if (key == KeyCode.Alpha1) {
+            if (key == KeyCode.Alpha0) {
+                state = CreateCharacterState.DEFAULT;
+                MenuText.text = DEFAULT_TEXT;
+            } else if (key == KeyCode.Alpha1) {
                 selectedRace = Race.HILL_DWARF;
                 state = CreateCharacterState.DEFAULT;
                 MenuText.text = DEFAULT_TEXT;
@@ -85,7 +103,10 @@ public class CreateCharacter : MonoBehaviour, KeyInputReceiver {
                 reRollAbilities();
             }
         } else if (state == CreateCharacterState.CHOSE_CLASS) {
-            if (key == KeyCode.Alpha1) {
+            if (key == KeyCode.Alpha0) {
+                state = CreateCharacterState.DEFAULT;
+                MenuText.text = DEFAULT_TEXT;
+            } else if (key == KeyCode.Alpha1) {
                 hero.AddLevel(CharacterClasses.Barbarian);
                 state = CreateCharacterState.DONE;
                 MenuText.text = DONE_TEXT;
@@ -101,7 +122,8 @@ public class CreateCharacter : MonoBehaviour, KeyInputReceiver {
                 NameInput.SetActive(true);
                 NameInput.GetComponent<InputField>().Select();
             } else if (key == KeyCode.Alpha0) {
-                SceneManager.LoadScene("MainMenu");
+                state = CreateCharacterState.DEFAULT;
+                MenuText.text = DEFAULT_TEXT;
             }
         }
     }

@@ -24,7 +24,7 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
     private const string SELECT_ACTION =
 @"1. Attack
 2. Cast Spell
-3. Items (not yet implemented)";
+3. Items";
 
     private const string WON =
 @"You won!
@@ -32,6 +32,11 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
     private const string LOST =
 @"You lost!
 0. Return to Main Menu";
+
+    private const string SELECT_ITEM_ACTION =
+@"1. Change/Equip Weapons
+2. Use an item
+0. Back";
 
     private ConditionIconBehavior iconBehavior;
     private Spell selectedSpell;
@@ -43,6 +48,10 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
         YOUR_TURN_SELECT_ACTION,
         ATTACK_SELECT_TARGET,
         ATTACK_EXECUTED,
+        ITEM_SELECT_ACTION,
+        ITEM_EQUIP_SELECT_ITEMS,
+        ITEM_USE_SELECT_ITEM,
+        ITEM_USE_SELECT_TARGETS,
         SPELL_SELECT_SPELL,
         SPELL_SELECT_SLOT,
         SPELL_SELECT_TARGETS,
@@ -54,6 +63,11 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
     private CombatState state = CombatState.ENEMY_TURN;
 
     private Dictionary<string, CombattantData> combattants = new Dictionary<string, CombattantData>();
+
+    private Usable usableItem;
+    private Consumable consumableItem;
+
+    private int expendCharges;
 
     public void KeyPressHandler(KeyCode code) {
         if (timer > 0) return;
@@ -67,14 +81,18 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
                 selectedSpell = null;
                 selectedSlot = SpellLevel.CANTRIP;
                 selectedTargets.Clear();
-
+            } else if (code == KeyCode.Alpha3) {
+                state = CombatState.ITEM_SELECT_ACTION;
+                MenuText.text = SELECT_ITEM_ACTION;
+                selectedTargets.Clear();
+                usableItem = null;
+                consumableItem = null;
+                expendCharges = 1;
             }
         } else if (state == CombatState.ATTACK_SELECT_TARGET) {
             Combattant target = null;
             if (code == KeyCode.Alpha0) {
-                state = CombatState.YOUR_TURN_SELECT_ACTION;
-                MenuText.text = SELECT_ACTION;
-                return;
+                returnToMain();
             } else if (code == KeyCode.Alpha1) {
                 target = enemies[0];
             } else if (code == KeyCode.Alpha2) {
@@ -97,9 +115,7 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
             }
         } else if (state == CombatState.SPELL_SELECT_SPELL) {
             if (code == KeyCode.Alpha0) {
-                state = CombatState.YOUR_TURN_SELECT_ACTION;
-                MenuText.text = SELECT_ACTION;
-                return;
+                returnToMain();
             } else {
                 int index = code - KeyCode.Alpha1;
                 if (battle.CurrentCombattant.AvailableSpells.Length == 0) return;
@@ -120,9 +136,7 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
             }
         } else if (state == CombatState.SPELL_SELECT_SLOT) {
             if (code == KeyCode.Alpha0) {
-                state = CombatState.YOUR_TURN_SELECT_ACTION;
-                MenuText.text = SELECT_ACTION;
-                return;
+                returnToMain();
             } else {
                 int index = code - KeyCode.Alpha0;
                 if (index < (int)selectedSpell.Level) return;
@@ -139,7 +153,6 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
         } else if (state == CombatState.SPELL_SELECT_TARGETS) {
             if (code == KeyCode.Alpha0) {
                 castSpell();
-                return;
             } else {
                 int index = code - KeyCode.Alpha1;
                 Dictionary<string, CombattantData>.Enumerator enumerator = combattants.GetEnumerator();
@@ -152,7 +165,49 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
                 if (selectedTargets.Count == selectedSpell.MaximumTargets) castSpell();
                 MenuText.text = getSelectTargetsText();
             }
+        } else if (state == CombatState.ITEM_SELECT_ACTION) {
+            if (code == KeyCode.Alpha0) {
+                returnToMain();
+            } else if (code == KeyCode.Alpha1) {
+                state = CombatState.ITEM_EQUIP_SELECT_ITEMS;
+                MenuText.text = getEquippableItems();
+            } else if (code == KeyCode.Alpha2) {
+                state = CombatState.ITEM_USE_SELECT_ITEM;
+                MenuText.text = getUsableItems();
+            }
+        } else if (state == CombatState.ITEM_EQUIP_SELECT_ITEMS) {
+            if (code == KeyCode.Alpha0) {
+                equipSelectedItems();
+            } else {
+                int index = code - KeyCode.Alpha1;
+                CharacterInventory inventory = ((CharacterSheet)battle.CurrentCombattant).Inventory;
+                if (index > inventory.Bag.Length) return;
+                selectedTargets.Add(inventory.Bag[index].ToString());
+                MenuText.text = getEquippableItems();
+            }
+        } else if (state == CombatState.ITEM_USE_SELECT_ITEM) {
+            if (code == KeyCode.Alpha0) {
+                returnToMain();
+            } else {
+                int index = code - KeyCode.Alpha1;
+                CharacterInventory inventory = ((CharacterSheet)battle.CurrentCombattant).Inventory;
+                if (index > inventory.Bag.Length) return;
+                Item item = inventory.Bag[index];
+                if (item is Consumable) {
+                    CharacterSheet hero = (CharacterSheet)battle.CurrentCombattant;
+                    hero.Consume((Consumable)item);
+                    timer = 1.0f;
+                } else if (item is Usable) {
+                    state = CombatState.ITEM_USE_SELECT_TARGETS;
+                    MenuText.text = getSelectTargetsText();
+                }
+            }
         }
+    }
+
+    private void returnToMain() {
+        state = CombatState.YOUR_TURN_SELECT_ACTION;
+        MenuText.text = SELECT_ACTION;
     }
 
     private void combatLogListener(object sender, EventArgs args) {
@@ -470,5 +525,57 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
         foreach (Combattant target in targets) {
             setAttackDefendSprites(battle.CurrentCombattant, target);
         }
+    }
+
+    private string getEquippableItems() {
+        string text = "Select item(s) to equip from inventory\n";
+        CharacterInventory inventory = ((CharacterSheet)battle.CurrentCombattant).Inventory;
+        int i = 1;
+        foreach (Item item in inventory.Bag) {
+            string selected = selectedTargets.Contains(item.ToString()) ? "*" : " ";
+            if (item.Type == ItemType.WEAPON || item.Type == ItemType.SHIELD)
+                text += String.Format("{2}{0}. {1}\n", i++, item.Name, selected);
+        }
+        text += "0. Back";
+        return text;
+    }
+
+    private string getUsableItems() {
+        string text = "Select item to use\n";
+        CharacterInventory inventory = ((CharacterSheet)battle.CurrentCombattant).Inventory;
+        int i = 1;
+        foreach (Item item in inventory.Bag) {
+            string selected = selectedTargets.Contains(item.ToString()) ? "*" : " ";
+            if (item is Consumable) {
+                Consumable consumable = (Consumable)item;
+                text += String.Format("{2}{0}. {1} ({3})\n", i++, item.Name, selected, consumable.Charges);
+            } else if (item is Usable) {
+                Usable usable = (Usable)item;
+                text += String.Format("{2}{0}. {1} ({3})\n", i++, item.Name, selected, usable.Charges);
+
+            }
+        }
+        text += "\n0. Back";
+        return text;
+    }
+
+    private string getExpendCharges() {
+        string text = "Expend charges\n";
+        int availableForUse = Math.Min(usableItem.MaxChargePerUse, usableItem.Charges);
+        text += String.Format("1-{0} Charges ({1} left)\n", availableForUse, usableItem.Charges);
+        text += "0. Back";
+        return text;
+    }
+
+    private void equipSelectedItems() {
+        CharacterSheet hero = (CharacterSheet)battle.CurrentCombattant;
+        foreach (string name in selectedTargets) {
+            foreach (Item item in hero.Inventory.Bag) {
+                if (name == item.ToString()) {
+                    hero.Equip(item);
+                }
+            }
+        }
+        timer = 0.5f;
     }
 }

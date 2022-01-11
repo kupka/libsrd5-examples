@@ -38,7 +38,7 @@ public class ModifyCharacter : MonoBehaviour, KeyInputReceiver {
 5. Equip Armor 
 6. Prepare Spells
 7. Add a Healing Potion
-8. Add a Wand of Magic Missiles
+8. Add a Wand of Magic Missiles (makes fight trivial)
 0. Return to Main Menu";
 
     private const string EQUIP_MELEE_WEAPONS =
@@ -254,8 +254,8 @@ public class ModifyCharacter : MonoBehaviour, KeyInputReceiver {
                         return;
                 }
                 hero.Inventory.AddToBag(Potions.PotionOfHealing);
-                if (page == ModifyCharacterPage.INVENTORY)
-                    displayInventory();
+                page = ModifyCharacterPage.INVENTORY;
+                displayInventory();
             } else if (code == KeyCode.Alpha8) {
                 // Replace if one is already in inventory (charges could be used up)
                 foreach (Item item in hero.Inventory.Bag) {
@@ -265,8 +265,8 @@ public class ModifyCharacter : MonoBehaviour, KeyInputReceiver {
                     }
                 }
                 hero.Inventory.AddToBag(Wands.WandOfMagicMissiles);
-                if (page == ModifyCharacterPage.INVENTORY)
-                    displayInventory();
+                page = ModifyCharacterPage.INVENTORY;
+                displayInventory();
             }
         } else if (state == ModifyCharacterState.EQUIP_MELEE_WEAPONS) {
             if (code == KeyCode.Alpha0) {

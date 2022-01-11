@@ -42,32 +42,16 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
     private Spell selectedSpell;
     private SpellLevel selectedSlot;
     private List<string> selectedTargets = new List<string>();
-
+    private Usable selectedUsable;
+    private int selectedCharges;
     enum CombatState {
-        ENEMY_TURN,
-        YOUR_TURN_SELECT_ACTION,
-        ATTACK_SELECT_TARGET,
-        ATTACK_EXECUTED,
-        ITEM_SELECT_ACTION,
-        ITEM_EQUIP_SELECT_ITEMS,
-        ITEM_USE_SELECT_ITEM,
-        ITEM_USE_SELECT_TARGETS,
-        SPELL_SELECT_SPELL,
-        SPELL_SELECT_SLOT,
-        SPELL_SELECT_TARGETS,
-        SPELL_CAST,
-        WON,
-        LOST
+        ENEMY_TURN, YOUR_TURN_SELECT_ACTION, ATTACK_SELECT_TARGET, ATTACK_EXECUTED,
+        ITEM_SELECT_ACTION, ITEM_EQUIP_SELECT_ITEMS, ITEM_USE_SELECT_ITEM, ITEM_USE_SELECT_CHARGES, ITEM_USE_SELECT_TARGETS,
+        SPELL_SELECT_SPELL, SPELL_SELECT_SLOT, SPELL_SELECT_TARGETS, SPELL_CAST,
+        WON, LOST
     }
-
     private CombatState state = CombatState.ENEMY_TURN;
-
     private Dictionary<string, CombattantData> combattants = new Dictionary<string, CombattantData>();
-
-    private Usable usableItem;
-    private Consumable consumableItem;
-
-    private int expendCharges;
 
     public void KeyPressHandler(KeyCode code) {
         if (timer > 0) return;
@@ -85,9 +69,8 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
                 state = CombatState.ITEM_SELECT_ACTION;
                 MenuText.text = SELECT_ITEM_ACTION;
                 selectedTargets.Clear();
-                usableItem = null;
-                consumableItem = null;
-                expendCharges = 1;
+                selectedUsable = null;
+                selectedCharges = 1;
             }
         } else if (state == CombatState.ATTACK_SELECT_TARGET) {
             Combattant target = null;
@@ -155,13 +138,7 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
                 castSpell();
             } else {
                 int index = code - KeyCode.Alpha1;
-                Dictionary<string, CombattantData>.Enumerator enumerator = combattants.GetEnumerator();
-                int i = 0;
-                while (enumerator.MoveNext()) {
-                    KeyValuePair<string, CombattantData> current = enumerator.Current;
-                    if (index == i++)
-                        selectedTargets.Add(current.Key);
-                }
+                toggleSelectedTarget(index);
                 if (selectedTargets.Count == selectedSpell.MaximumTargets) castSpell();
                 MenuText.text = getSelectTargetsText();
             }
@@ -177,7 +154,12 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
             }
         } else if (state == CombatState.ITEM_EQUIP_SELECT_ITEMS) {
             if (code == KeyCode.Alpha0) {
-                equipSelectedItems();
+                if (selectedTargets.Count == 0) {
+                    returnToMain();
+                } else {
+                    equipSelectedItems();
+
+                }
             } else {
                 int index = code - KeyCode.Alpha1;
                 CharacterInventory inventory = ((CharacterSheet)battle.CurrentCombattant).Inventory;
@@ -192,15 +174,43 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
                 int index = code - KeyCode.Alpha1;
                 CharacterInventory inventory = ((CharacterSheet)battle.CurrentCombattant).Inventory;
                 if (index > inventory.Bag.Length) return;
-                Item item = inventory.Bag[index];
-                if (item is Consumable) {
-                    CharacterSheet hero = (CharacterSheet)battle.CurrentCombattant;
-                    hero.Consume((Consumable)item);
-                    timer = 1.0f;
-                } else if (item is Usable) {
-                    state = CombatState.ITEM_USE_SELECT_TARGETS;
-                    MenuText.text = getSelectTargetsText();
+                int i = 0;
+                foreach (Item item in inventory.Bag) {
+                    if (item is Consumable && i++ == index) {
+                        CharacterSheet hero = (CharacterSheet)battle.CurrentCombattant;
+                        hero.Consume((Consumable)item);
+                        timer = 1.0f;
+                    } else if (item is Usable && i++ == index) {
+                        selectedUsable = (Usable)item;
+                        if (selectedUsable.Charges == 1 || selectedUsable.MaximumChargePerUse == 1) {
+                            selectedCharges = 1;
+                            state = CombatState.ITEM_USE_SELECT_TARGETS;
+                            MenuText.text = getSelectTargetsText();
+                        } else {
+                            state = CombatState.ITEM_USE_SELECT_CHARGES;
+                            MenuText.text = getExpendCharges();
+                        }
+                    }
                 }
+            }
+        } else if (state == CombatState.ITEM_USE_SELECT_CHARGES) {
+            if (code == KeyCode.Alpha0) {
+                returnToMain();
+            } else {
+                int charges = code - KeyCode.Alpha0;
+                if (charges > selectedUsable.Charges || charges > selectedUsable.MaximumChargePerUse) return;
+                selectedCharges = charges;
+                state = CombatState.ITEM_USE_SELECT_TARGETS;
+                MenuText.text = getSelectTargetsText();
+            }
+        } else if (state == CombatState.ITEM_USE_SELECT_TARGETS) {
+            if (code == KeyCode.Alpha0) {
+                useSelectedItem();
+            } else {
+                int index = code - KeyCode.Alpha1;
+                toggleSelectedTarget(index);
+                if (selectedTargets.Count == selectedUsable.MaximumTargets) useSelectedItem();
+                MenuText.text = getSelectTargetsText();
             }
         }
     }
@@ -208,6 +218,20 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
     private void returnToMain() {
         state = CombatState.YOUR_TURN_SELECT_ACTION;
         MenuText.text = SELECT_ACTION;
+    }
+
+    private void toggleSelectedTarget(int index) {
+        Dictionary<string, CombattantData>.Enumerator enumerator = combattants.GetEnumerator();
+        int i = 0;
+        while (enumerator.MoveNext()) {
+            KeyValuePair<string, CombattantData> current = enumerator.Current;
+            if (index == i++) {
+                if (selectedTargets.Contains(current.Key))
+                    selectedTargets.Remove(current.Key);
+                else
+                    selectedTargets.Add(current.Key);
+            }
+        }
     }
 
     private void combatLogListener(object sender, EventArgs args) {
@@ -493,7 +517,7 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
     }
 
     private string getSelectTargetsText() {
-        String text = String.Format("Select target(s) to cast {0}\n", selectedSpell.Name);
+        string text = "Select target(s)\n";
         Dictionary<string, CombattantData>.Enumerator enumerator = combattants.GetEnumerator();
         int i = 1;
         while (enumerator.MoveNext()) {
@@ -551,18 +575,18 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
                 text += String.Format("{2}{0}. {1} ({3})\n", i++, item.Name, selected, consumable.Charges);
             } else if (item is Usable) {
                 Usable usable = (Usable)item;
+                if (usable.Charges == 0) continue;
                 text += String.Format("{2}{0}. {1} ({3})\n", i++, item.Name, selected, usable.Charges);
-
             }
         }
-        text += "\n0. Back";
+        text += "0. Back";
         return text;
     }
 
     private string getExpendCharges() {
         string text = "Expend charges\n";
-        int availableForUse = Math.Min(usableItem.MaxChargePerUse, usableItem.Charges);
-        text += String.Format("1-{0} Charges ({1} left)\n", availableForUse, usableItem.Charges);
+        int availableForUse = Math.Min(selectedUsable.MaximumChargePerUse, selectedUsable.Charges);
+        text += String.Format("1-{0} Charges ({1} left)\n", availableForUse, selectedUsable.Charges);
         text += "0. Back";
         return text;
     }
@@ -577,5 +601,18 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
             }
         }
         timer = 0.5f;
+    }
+
+    private void useSelectedItem() {
+        CharacterSheet hero = (CharacterSheet)battle.CurrentCombattant;
+        Combattant[] targets = new Combattant[selectedTargets.Count];
+        for (int i = 0; i < selectedTargets.Count; i++) {
+            targets[i] = combattants[selectedTargets[i]].Combattant;
+        }
+        hero.Use(selectedUsable, selectedCharges, targets);
+        timer = 2.0f;
+        foreach (Combattant target in targets) {
+            setAttackDefendSprites(battle.CurrentCombattant, target);
+        }
     }
 }

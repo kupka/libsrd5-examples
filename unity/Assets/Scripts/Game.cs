@@ -13,7 +13,6 @@ public static class Game {
     public static List<CharacterSheet> Characters = new List<CharacterSheet>();
 
     public static int FrontLineChar1 = 0, FrontLineChar2 = 1;
-
     public static CombatScene Scene = CombatScene.ORCS;
 
     public static void StringPad(ref string s, int length) {

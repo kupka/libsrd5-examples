@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
@@ -20,6 +21,7 @@ public class ModifyCharacter : MonoBehaviour, KeyInputReceiver {
     enum ModifyCharacterPage {
         ABILITIES_AND_ATTACKS,
         FEATS_AND_PROFICIENCIES,
+        INVENTORY,
         SPELLS
     }
 
@@ -35,6 +37,8 @@ public class ModifyCharacter : MonoBehaviour, KeyInputReceiver {
 4. Equip Ranged Weapons
 5. Equip Armor 
 6. Prepare Spells
+7. Add a Healing Potion
+8. Add a Wand of Magic Missiles (makes fight trivial)
 0. Return to Main Menu";
 
     private const string EQUIP_MELEE_WEAPONS =
@@ -169,6 +173,24 @@ public class ModifyCharacter : MonoBehaviour, KeyInputReceiver {
         }
     }
 
+    private string emptyIfNull(Item item) {
+        if (item == null)
+            return "Empty";
+        else
+            return item.Name;
+    }
+
+    private void displayInventory() {
+        CharacterText.text = "<color=yellow>Inventory</color>\n";
+        CharacterText.text += String.Format("Mainhand: {0}\n", emptyIfNull(hero.Inventory.MainHand));
+        CharacterText.text += String.Format("Offhand:  {0}\n", emptyIfNull(hero.Inventory.OffHand));
+        CharacterText.text += String.Format("Armor:    {0}\n", emptyIfNull(hero.Inventory.Armor));
+        CharacterText.text += "\n<color=yellow>Items in backpack</color>\n";
+        foreach (Item item in hero.Inventory.Bag) {
+            CharacterText.text += String.Format("{0}\n", item.Name);
+        }
+    }
+
     private void prepareDruidSpells() {
         if (hero.Levels[0].Class.Class != Class.DRUID) return;
         AvailableSpells druidSpells = null;
@@ -200,6 +222,9 @@ public class ModifyCharacter : MonoBehaviour, KeyInputReceiver {
                     case ModifyCharacterPage.SPELLS:
                         displaySpells();
                         break;
+                    case ModifyCharacterPage.INVENTORY:
+                        displayInventory();
+                        break;
                 }
             } else if (code == KeyCode.Alpha3) {
                 state = ModifyCharacterState.EQUIP_MELEE_WEAPONS;
@@ -222,29 +247,47 @@ public class ModifyCharacter : MonoBehaviour, KeyInputReceiver {
                 page = ModifyCharacterPage.SPELLS;
                 prepareDruidSpells();
                 displaySpells();
+            } else if (code == KeyCode.Alpha7) {
+                // Don't add if one is already in inventory
+                foreach (Item item in hero.Inventory.Bag) {
+                    if (item.IsThisA(Potions.PotionOfHealing))
+                        return;
+                }
+                hero.Inventory.AddToBag(Potions.PotionOfHealing);
+                page = ModifyCharacterPage.INVENTORY;
+                displayInventory();
+            } else if (code == KeyCode.Alpha8) {
+                // Replace if one is already in inventory (charges could be used up)
+                foreach (Item item in hero.Inventory.Bag) {
+                    if (item.IsThisA(Wands.WandOfMagicMissiles)) {
+                        hero.Inventory.RemoveFromBag(item);
+                        break;
+                    }
+                }
+                hero.Inventory.AddToBag(Wands.WandOfMagicMissiles);
+                page = ModifyCharacterPage.INVENTORY;
+                displayInventory();
             }
         } else if (state == ModifyCharacterState.EQUIP_MELEE_WEAPONS) {
             if (code == KeyCode.Alpha0) {
                 state = ModifyCharacterState.DEFAULT;
                 MenuText.text = DEFAULT_TEXT;
             } else if (code == KeyCode.Alpha1) {
-                if (hero.Inventory.MainHand != null)
-                    hero.Unequip(hero.Inventory.MainHand);
+                hero.Unequip(hero.Inventory.MainHand);
                 hero.Equip(Weapons.Club);
             } else if (code == KeyCode.Alpha2) {
-                if (hero.Inventory.MainHand != null)
-                    hero.Unequip(hero.Inventory.MainHand);
+                hero.Unequip(hero.Inventory.MainHand);
                 hero.Equip(Weapons.Quarterstaff);
             } else if (code == KeyCode.Alpha3) {
                 hero.Equip(Shields.Shield);
             } else if (code == KeyCode.Alpha4) {
-                if (hero.Inventory.MainHand != null)
-                    hero.Unequip(hero.Inventory.MainHand);
+                hero.Unequip(hero.Inventory.MainHand);
                 hero.Equip(Weapons.Handaxe);
             } else if (code == KeyCode.Alpha5) {
                 hero.Equip(Weapons.Greatclub);
             }
             displayAbilitiesAndAttacks();
+            clearInventoryClutter();
         } else if (state == ModifyCharacterState.EQUIP_RANGED_WEAPONS) {
             if (code == KeyCode.Alpha0) {
                 state = ModifyCharacterState.DEFAULT;
@@ -255,6 +298,7 @@ public class ModifyCharacter : MonoBehaviour, KeyInputReceiver {
                 hero.Equip(Weapons.Longbow);
             }
             displayAbilitiesAndAttacks();
+            clearInventoryClutter();
         } else if (state == ModifyCharacterState.EQUIP_ARMOR) {
             if (code == KeyCode.Alpha0) {
                 state = ModifyCharacterState.DEFAULT;
@@ -269,11 +313,44 @@ public class ModifyCharacter : MonoBehaviour, KeyInputReceiver {
                 hero.Equip(Armors.HideArmor);
             }
             displayAbilitiesAndAttacks();
+            clearInventoryClutter();
         } else if (state == ModifyCharacterState.PREPARE_SPELLS) {
             if (code == KeyCode.Alpha0) {
                 state = ModifyCharacterState.DEFAULT;
                 MenuText.text = DEFAULT_TEXT;
             }
+        }
+    }
+
+    private void clearInventoryClutter() {
+        // keep a maximum of one melee weapon, one ranged weapon and one shield in bag
+        List<Item> toRemove = new List<Item>();
+        bool melee = false, shield = false, ranged = false;
+        foreach (Item item in hero.Inventory.Bag) {
+            if (item is Weapon) {
+                Weapon weapon = (Weapon)item;
+                if (weapon.HasProperty(WeaponProperty.AMMUNITION)) {
+                    if (ranged)
+                        toRemove.Add(weapon);
+                    else
+                        ranged = true;
+                } else {
+                    if (melee)
+                        toRemove.Add(weapon);
+                    else
+                        melee = true;
+                }
+            } else if (item is Shield) {
+                if (shield)
+                    toRemove.Add(item);
+                else
+                    shield = true;
+            } else if (item is Armor) {
+                toRemove.Add(item);
+            }
+        }
+        foreach (Item item in toRemove) {
+            hero.Inventory.RemoveFromBag(item);
         }
     }
 }

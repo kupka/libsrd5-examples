@@ -459,8 +459,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 54b7484153bea0348a53507d327d61a7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Slowness: 3
-  Factor: 0.9
+  Slowness: 1
+  Factor: 0.8
   Icons:
   - {fileID: 1827739251}
 --- !u!1 &259276776
@@ -2167,7 +2167,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 1050, y: 720}
+  m_SizeDelta: {x: 1050, y: 700}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1611952535
 MonoBehaviour:
@@ -2453,7 +2453,7 @@ RectTransform:
   m_GameObject: {fileID: 1827739249}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1, y: 1, z: 0}
   m_Children: []
   m_Father: {fileID: 168127973}
   m_RootOrder: 4

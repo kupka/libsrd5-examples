@@ -53,6 +53,7 @@ public class MainMenuBehavior : MonoBehaviour, KeyInputReceiver {
     void Start() {
         MenuText.text = DEFAULT_TEXT;
         updateCharacters();
+        srd5.Random.State = (uint)DateTime.Now.ToFileTime();
     }
 
     public void KeyPressHandler(KeyCode code) {

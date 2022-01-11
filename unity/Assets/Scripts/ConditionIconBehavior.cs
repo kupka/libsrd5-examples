@@ -9,17 +9,17 @@ public class ConditionIconBehavior : MonoBehaviour {
     public float Slowness = .5f, Factor = .5f;
     public List<Image> Icons = new List<Image>();
     private bool scalingDown = true;
-    private float scale = 1.0f;
+    private float scale = 1f;
 
     void Update() {
         float diff = Time.deltaTime / Slowness;
         if (scalingDown) {
-            scale -= diff * Factor;
+            scale -= diff * (1f - Factor);
             if (scale < Factor)
                 scalingDown = false;
         } else {
-            scale += diff * 0.5f;
-            if (scale > 1.0f)
+            scale += diff * (1f - Factor);
+            if (scale > 1f)
                 scalingDown = true;
         }
         foreach (Image icon in Icons) {

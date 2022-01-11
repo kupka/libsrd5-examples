@@ -8,12 +8,14 @@ public enum CreateCharacterState {
     DEFAULT,
     CHOSE_RACE,
     CHOSE_CLASS,
-    DONE
+    DONE,
+    ENTER_NAME
 }
 public class CreateCharacter : MonoBehaviour, KeyInputReceiver {
     public Text MenuText, CharacterText;
 
     public GameObject NameInput;
+    public Button OKButton, DiceButton;
 
     public Image CharacterImage;
 
@@ -22,6 +24,15 @@ public class CreateCharacter : MonoBehaviour, KeyInputReceiver {
     private Race selectedRace = Race.HILL_DWARF;
     private CreateCharacterState state = CreateCharacterState.DEFAULT;
 
+    private string[] namePrefix = new string[] { "Bro", "Clo", "Dor", "Fir", "Gum", "Hub", "Nub", "Pil", "Vyr", "Xom" };
+    private string[] nameMiddle = new string[] { "f", "g", "e", "gh", "m", "n", "p", "s", "t", "o" };
+    private string[] nameMiddle2 = new string[] { "e", "i", "u", "o", "a", "y" };
+    private string[] nameSuffix = new string[] { "l", "r", "m", "f", "p", "t" };
+    private string randomName {
+        get {
+            return namePrefix[Dice.D10.Value - 1] + nameMiddle[Dice.D10.Value - 1] + nameMiddle2[Dice.D6.Value - 1] + nameSuffix[Dice.D6.Value - 1];
+        }
+    }
     private const string DEFAULT_TEXT =
 @"1. Select Race
 2. Re-Roll Abilities
@@ -44,24 +55,16 @@ public class CreateCharacter : MonoBehaviour, KeyInputReceiver {
     // Start is called before the first frame update
     void Start() {
         NameInput.GetComponent<InputField>().onEndEdit.AddListener(delegate (string value) {
-            if (value.Length < 3) {
-                NameInput.GetComponent<InputField>().text = "";
-                NameInput.GetComponent<InputField>().placeholder.GetComponent<Text>().text = "Too short";
-            } else if (value.Length > 15) {
-                NameInput.GetComponent<InputField>().text = "";
-                NameInput.GetComponent<InputField>().placeholder.GetComponent<Text>().text = "Too long";
-            } else {
-                foreach (CharacterSheet sheet in Game.Characters) {
-                    if (sheet.Name == value) {
-                        NameInput.GetComponent<InputField>().text = "";
-                        NameInput.GetComponent<InputField>().placeholder.GetComponent<Text>().text = "Already taken";
-                        return;
-                    }
-                }
-                hero.Name = value;
-                Game.Characters.Add(hero);
-                SceneManager.LoadScene("MainMenu", LoadSceneMode.Single);
-            }
+            if (!Input.GetKeyDown(KeyCode.Return)) return;
+            KeyPressHandler(KeyCode.Return);
+        });
+
+        OKButton.onClick.AddListener(delegate () {
+            KeyPressHandler(KeyCode.Return);
+        });
+
+        DiceButton.onClick.AddListener(delegate () {
+            NameInput.GetComponent<InputField>().text = randomName;
         });
 
         MenuText.text = DEFAULT_TEXT;
@@ -119,12 +122,34 @@ public class CreateCharacter : MonoBehaviour, KeyInputReceiver {
             }
         } else if (state == CreateCharacterState.DONE) {
             if (key == KeyCode.Alpha1) {
-                NameInput.SetActive(true);
+                NameInput.transform.parent.gameObject.SetActive(true);
                 NameInput.GetComponent<InputField>().Select();
+                state = CreateCharacterState.ENTER_NAME;
             } else if (key == KeyCode.Alpha0) {
                 state = CreateCharacterState.DEFAULT;
                 MenuText.text = DEFAULT_TEXT;
             }
+        } else if (state == CreateCharacterState.ENTER_NAME && key == KeyCode.Return) {
+            string value = NameInput.GetComponent<InputField>().text;
+            if (value.Length < 3) {
+                NameInput.GetComponent<InputField>().text = "";
+                NameInput.GetComponent<InputField>().placeholder.GetComponent<Text>().text = "Too short";
+            } else if (value.Length > 15) {
+                NameInput.GetComponent<InputField>().text = "";
+                NameInput.GetComponent<InputField>().placeholder.GetComponent<Text>().text = "Too long";
+            } else {
+                foreach (CharacterSheet sheet in Game.Characters) {
+                    if (sheet.Name == value) {
+                        NameInput.GetComponent<InputField>().text = "";
+                        NameInput.GetComponent<InputField>().placeholder.GetComponent<Text>().text = "Already taken";
+                        return;
+                    }
+                }
+                hero.Name = value;
+                Game.Characters.Add(hero);
+                SceneManager.LoadScene("MainMenu", LoadSceneMode.Single);
+            }
+            OKButton.Select();
         }
     }
 

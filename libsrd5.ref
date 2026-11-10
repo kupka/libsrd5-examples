@@ -1,0 +1,5 @@
+# libsrd5 version used by all examples (Unity, Godot, Blazor).
+# Line 1 after the comments: a git ref (commit SHA or tag) of https://github.com/kupka/libsrd5.
+# Changing it on a branch makes the "libsrd5" workflow build that version and commit the DLLs.
+# 0.3.4 (4th Level Spells)
+d3465c090eac93bec160bc854089f9166135dfb7

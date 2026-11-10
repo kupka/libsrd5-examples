@@ -1,0 +1,61 @@
+name: libsrd5
+
+# Builds libsrd5 at the ref pinned in libsrd5.ref and commits the DLL into the
+# Unity, Godot and Blazor projects. Runs when libsrd5.ref changes on a branch
+# (main is protected; update libsrd5 through a pull request).
+on:
+  push:
+    branches-ignore: [main]
+    paths: [libsrd5.ref]
+  workflow_dispatch:
+
+jobs:
+  build-dll:
+    name: build-libsrd5
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Read pinned libsrd5 ref
+        id: ref
+        run: echo "ref=$(grep -v '^#' libsrd5.ref | head -1 | tr -d '[:space:]')" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout libsrd5
+        uses: actions/checkout@v4
+        with:
+          repository: kupka/libsrd5
+          ref: ${{ steps.ref.outputs.ref }}
+          path: libsrd5-src
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Build libsrd5
+        id: build
+        run: |
+          dotnet build libsrd5-src/libsrd5/libsrd5.csproj -c Release
+          echo "version=$(grep -o '<Version>[^<]*' libsrd5-src/libsrd5/libsrd5.csproj | cut -d'>' -f2)" >> "$GITHUB_OUTPUT"
+
+      - name: Copy DLL into the examples
+        run: |
+          DLL=libsrd5-src/libsrd5/bin/Release/netstandard2.0/libsrd5.dll
+          cp "$DLL" unity/Assets/Scripts/libsrd5.dll
+          cp "$DLL" godot/lib/libsrd5.dll
+          cp "$DLL" blazor/lib/libsrd5.dll
+          rm -rf libsrd5-src
+
+      - name: Commit DLLs
+        run: |
+          git add unity/Assets/Scripts/libsrd5.dll godot/lib/libsrd5.dll blazor/lib/libsrd5.dll
+          if git diff --cached --quiet; then
+            echo "DLLs unchanged"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Update libsrd5 DLL to ${{ steps.build.outputs.version }} (${{ steps.ref.outputs.ref }})"
+          git push

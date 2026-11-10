@@ -7,6 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GODOT_VERSION: 4.6.2
+      GODOT: ${{ github.workspace }}/godot-bin/Godot_v4.6.2-stable_mono_linux_x86_64/Godot_v4.6.2-stable_mono_linux.x86_64
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -15,14 +16,78 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
       # Compiles the C# scripts against GodotSharp from NuGet (no editor needed)
       - name: Build C# project
         run: dotnet build godot/Libsrd5Examples.csproj
 
-      # Imports assets and loads the project headless to catch broken scenes/resources
-      - name: Import project with Godot
+      # Godot editor and export templates (~1 GB, cached between runs)
+      - uses: actions/cache@v4
+        id: godot-cache
+        with:
+          path: |
+            godot-bin
+            ~/.local/share/godot/export_templates
+          key: godot-${{ env.GODOT_VERSION }}-mono
+
+      - name: Download Godot and export templates
+        if: steps.godot-cache.outputs.cache-hit != 'true'
         run: |
-          curl -sSL -o godot.zip "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_mono_linux_x86_64.zip"
-          unzip -q godot.zip
-          GODOT=$(find . -maxdepth 2 -name "Godot_v*_mono_linux.x86_64" | head -1)
-          "$GODOT" --headless --path godot --import
+          BASE="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable"
+          curl -sSL -o godot.zip "$BASE/Godot_v${GODOT_VERSION}-stable_mono_linux_x86_64.zip"
+          unzip -q godot.zip -d godot-bin
+          curl -sSL -o templates.tpz "$BASE/Godot_v${GODOT_VERSION}-stable_mono_export_templates.tpz"
+          unzip -q templates.tpz
+          mkdir -p ~/.local/share/godot/export_templates
+          mv templates ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable.mono
+          rm godot.zip templates.tpz
+
+      - name: Configure Android export
+        run: |
+          keytool -genkeypair -v -keystore ~/debug.keystore -storepass android -alias androiddebugkey \
+            -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+          mkdir -p ~/.config/godot
+          cat > ~/.config/godot/editor_settings-${GODOT_VERSION%.*}.tres <<EOT
+          [gd_resource type="EditorSettings" format=3]
+
+          [resource]
+          export/android/android_sdk_path = "$ANDROID_HOME"
+          export/android/java_sdk_path = "$JAVA_HOME"
+          export/android/debug_keystore = "$HOME/debug.keystore"
+          export/android/debug_keystore_user = "androiddebugkey"
+          export/android/debug_keystore_pass = "android"
+          EOT
+          sed -i 's/^          //' ~/.config/godot/editor_settings-*.tres
+
+      # Imports assets headless; catches broken scenes/resources
+      - name: Import project
+        run: "$GODOT" --headless --path godot --import
+
+      - name: Export Windows, Linux and Android
+        run: |
+          mkdir -p build/windows build/linux build/android
+          "$GODOT" --headless --path godot --export-release "Windows" ../build/windows/libsrd5-examples.exe
+          "$GODOT" --headless --path godot --export-release "Linux" ../build/linux/libsrd5-examples.x86_64
+          # Debug-signed APK; a release APK needs your own keystore
+          "$GODOT" --headless --path godot --export-debug "Android" ../build/android/libsrd5-examples.apk
+          ls -lR build
+          test -f build/windows/libsrd5-examples.exe
+          test -f build/linux/libsrd5-examples.x86_64
+          test -f build/android/libsrd5-examples.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: godot-windows
+          path: build/windows
+      - uses: actions/upload-artifact@v4
+        with:
+          name: godot-linux
+          path: build/linux
+      - uses: actions/upload-artifact@v4
+        with:
+          name: godot-android
+          path: build/android

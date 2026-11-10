@@ -65,7 +65,7 @@ jobs:
 
       # Imports assets headless; catches broken scenes/resources
       - name: Import project
-        run: "$GODOT" --headless --path godot --import
+        run: '"$GODOT" --headless --path godot --import'
 
       - name: Export Windows, Linux and Android
         run: |

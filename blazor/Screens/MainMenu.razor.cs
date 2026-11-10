@@ -10,11 +10,13 @@ public partial class MainMenu {
         ARRANGE_CHARACTERS_1,
         ARRANGE_CHARACTERS_2,
         RETURN_ONLY,
-        BATTLE
+        BATTLE,
+        LIBRARY
     }
     private string MenuText = "", MainText = "";
 
     private MainMenuState state = MainMenuState.DEFAULT;
+    private Library library;
 
     private const string DEFAULT_TEXT =
 @"Remember to equip ranged weapons to characters in the back and prepare spells for casters.
@@ -23,7 +25,8 @@ public partial class MainMenu {
 2. Delete a Character
 3. Equip / Prepare a Chracter
 4. Arrange Characters
-5. Start a battle";
+5. Start a battle
+6. Library";
 
     private const string DELETE_TEXT =
 @"Input number of character to delete or 0 to cancel.";
@@ -81,6 +84,11 @@ public partial class MainMenu {
             } else if (code == KeyCode.Alpha5) {
                 MenuText = BATTLE_TEXT;
                 state = MainMenuState.BATTLE;
+            } else if (code == KeyCode.Alpha6) {
+                library = new Library();
+                state = MainMenuState.LIBRARY;
+                MenuText = library.MenuText;
+                MainText = library.MainText;
             }
         } else if (state == MainMenuState.DELETE_CHARACTER) {
             if (code > KeyCode.Alpha0) {
@@ -153,6 +161,16 @@ public partial class MainMenu {
             } else if (code == KeyCode.Alpha3) {
                 Game.Scene = Game.CombatScene.OGRES;
                 LoadScene("Combat");
+            }
+        } else if (state == MainMenuState.LIBRARY) {
+            if (library.HandleKey(code - KeyCode.Alpha0)) {
+                MenuText = library.MenuText;
+                MainText = library.MainText;
+            } else {
+                library = null;
+                state = MainMenuState.DEFAULT;
+                MenuText = DEFAULT_TEXT;
+                updateCharacters();
             }
         }
     }

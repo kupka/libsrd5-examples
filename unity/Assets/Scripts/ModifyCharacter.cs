@@ -96,7 +96,7 @@ public class ModifyCharacter : MonoBehaviour, KeyInputReceiver {
             hero.Strength.Value, hero.Strength.Modifier.ToString("+#;-#;0"), hero.Dexterity.Value, hero.Dexterity.Modifier.ToString("+#;-#;0"),
             hero.Constitution.Value, hero.Constitution.Modifier.ToString("+#;-#;0"), hero.Charisma.Value, hero.Charisma.Modifier.ToString("+#;-#;0"),
             hero.Intelligence.Value, hero.Intelligence.Modifier.ToString("+#;-#;0"), hero.Wisdom.Value, hero.Wisdom.Modifier.ToString("+#;-#;0"));
-        CharacterText.text += String.Format("Hitpoints: {0}   Proficiency: {1}   Armor Class: {2}\n\n", hero.HitPointsMax, hero.Proficiency, hero.ArmorClass);
+        CharacterText.text += String.Format("Hitpoints: {0}   Proficiency: {1}   Armor Class: {2}\n\n", hero.HitPointsMax, hero.ProficiencyBonus, hero.ArmorClass);
         CharacterText.text += "<color=yellow>Melee Attacks</color>\n";
         if (hero.MeleeAttacks.Length > 0) {
             foreach (Attack attack in hero.MeleeAttacks) {

@@ -69,6 +69,16 @@ public partial class Combat {
         WON, LOST
     }
     private CombatState state = CombatState.ENEMY_TURN;
+
+    // libsrd5 0.3: Monster.Name is the monster type and can't be changed, so two orcs are both "Orc".
+    // The example keeps its own labels ("Orc #0", "Orc #1") and uses them everywhere.
+    private Dictionary<Combatant, string> monsterNames = new Dictionary<Combatant, string>();
+
+    private string nameOf(Combatant combatant) {
+        string name;
+        if (monsterNames.TryGetValue(combatant, out name)) return name;
+        return combatant.Name;
+    }
     private Dictionary<string, CombatantData> combattants = new Dictionary<string, CombatantData>();
 
     protected override void OnKey(KeyCode code) {
@@ -255,7 +265,7 @@ public partial class Combat {
     private void combatLogListener(object sender, EventArgs args) {
         if (GlobalEvents.EventTypes.INITIATIVE.Equals(sender)) {
             GlobalEvents.InitiativeRolled initiative = (GlobalEvents.InitiativeRolled)args;
-            log(String.Format("{0} rolled for initiative: {1,2}", initiative.Roller.Name, initiative.Result));
+            log(String.Format("{0} rolled for initiative: {1,2}", nameOf(initiative.Roller), initiative.Result));
         } else if (GlobalEvents.EventTypes.ATTACKED.Equals(sender)) {
             GlobalEvents.AttackRolled attacked = (GlobalEvents.AttackRolled)args;
             String hit;
@@ -266,28 +276,28 @@ public partial class Combat {
             else
                 hit = "Missed";
             log(String.Format("{0} attacks {2} (AC{3}) with {4}: {5,2}{1} ({6})",
-                        attacked.Attacker.Name, attacked.Attack.AttackBonus.ToString("+#;-#;0"),
-                        attacked.Target.Name, attacked.Target.ArmorClass,
+                        nameOf(attacked.Attacker), attacked.Attack.AttackBonus.ToString("+#;-#;0"),
+                        nameOf(attacked.Target), attacked.Target.ArmorClass,
                         attacked.Attack.Name, attacked.Roll, hit));
         } else if (GlobalEvents.EventTypes.HEALED.Equals(sender)) {
             GlobalEvents.HealingReceived healed = (GlobalEvents.HealingReceived)args;
-            log(String.Format("{0} was healed for {1} hitpoints", healed.Beneficiary.Name, healed.Amount));
+            log(String.Format("{0} was healed for {1} hitpoints", nameOf(healed.Beneficiary), healed.Amount));
         } else if (GlobalEvents.EventTypes.DAMAGED.Equals(sender)) {
             GlobalEvents.DamageReceived damaged = (GlobalEvents.DamageReceived)args;
-            log(String.Format("{0} was hit for {1} points of {2} damage", damaged.Victim.Name, damaged.Amount, damaged.DamageType.Name()));
+            log(String.Format("{0} was hit for {1} points of {2} damage", nameOf(damaged.Victim), damaged.Amount, damaged.DamageType.Name()));
         } else if (GlobalEvents.EventTypes.DC.Equals(sender)) {
             GlobalEvents.DCRolled dc = (GlobalEvents.DCRolled)args;
             string success = dc.Success ? "Sucess" : "Fail";
-            log(String.Format("{0} rolled {1} {2} DC :{3} ({4})", dc.Roller.Name, dc.Ability.Name, dc.DC, dc.Roll, success));
+            log(String.Format("{0} rolled {1} {2} DC :{3} ({4})", nameOf(dc.Roller), dc.Ability.Name, dc.DC, dc.Roll, success));
         } else if (GlobalEvents.EventTypes.AFFECT_BY_SPELL.Equals(sender)) {
             GlobalEvents.SpellAffection spell = (GlobalEvents.SpellAffection)args;
             string affected = spell.Affected ? "affected" : "unaffected";
-            log(String.Format("{0} is {1} by {2}'s {3} Spell", spell.Target.Name, affected, spell.Caster.Name, spell.Spell.Name()));
+            log(String.Format("{0} is {1} by {2}'s {3} Spell", nameOf(spell.Target), affected, nameOf(spell.Caster), spell.Spell.Name()));
         } else if (GlobalEvents.EventTypes.CONDITION.Equals(sender)) {
             GlobalEvents.ConditionChanged condition = (GlobalEvents.ConditionChanged)args;
             string noLonger = condition.Removed ? "is no longer" : "is";
-            log(String.Format("{0} {1} {2}", condition.Bearer.Name, noLonger, condition.Condition.Name()));
-            if (!combattants.TryGetValue(condition.Bearer.Name, out CombatantData bearer)) return;
+            log(String.Format("{0} {1} {2}", nameOf(condition.Bearer), noLonger, condition.Condition.Name()));
+            if (!combattants.TryGetValue(nameOf(condition.Bearer), out CombatantData bearer)) return;
             // Only the unconscious condition has an icon (rendered by the markup, pulsing via CSS)
             if (condition.Removed)
                 bearer.Image.Icons.Remove(condition.Condition);
@@ -295,17 +305,17 @@ public partial class Combat {
                 bearer.Image.Icons.Add(condition.Condition);
         } else if (GlobalEvents.EventTypes.ACTION_FAILED.Equals(sender)) {
             GlobalEvents.ActionFailed failure = (GlobalEvents.ActionFailed)args;
-            log(String.Format("{0}'s action failed: {1}", failure.Initiator.Name, failure.Reason.ToString()));
+            log(String.Format("{0}'s action failed: {1}", nameOf(failure.Initiator), failure.Reason.ToString()));
         } else if (GlobalEvents.EventTypes.EQUIPMENT.Equals(sender)) {
             GlobalEvents.EquipmentChanged equipment = (GlobalEvents.EquipmentChanged)args;
             if (equipment.Event == GlobalEvents.EquipmentChanged.Events.UNEQUIPPED)
-                log(String.Format("{0} unequipped {1}", equipment.Hero.Name, equipment.Item.Name));
+                log(String.Format("{0} unequipped {1}", nameOf(equipment.Hero), equipment.Item.Name));
             else if (equipment.Event == GlobalEvents.EquipmentChanged.Events.EQUIPPED)
-                log(String.Format("{0} equipped {1}", equipment.Hero.Name, equipment.Item.Name));
+                log(String.Format("{0} equipped {1}", nameOf(equipment.Hero), equipment.Item.Name));
             else if (equipment.Event == GlobalEvents.EquipmentChanged.Events.USED)
-                log(String.Format("{0} used {1}", equipment.Hero.Name, equipment.Item.Name));
+                log(String.Format("{0} used {1}", nameOf(equipment.Hero), equipment.Item.Name));
             else if (equipment.Event == GlobalEvents.EquipmentChanged.Events.DESTROYED)
-                log(String.Format("{0}'s {1} was destroyed", equipment.Hero.Name, equipment.Item.Name));
+                log(String.Format("{0}'s {1} was destroyed", nameOf(equipment.Hero), equipment.Item.Name));
         } else {
             Console.WriteLine("Unexpected Event.");
         }
@@ -366,8 +376,8 @@ public partial class Combat {
             enemyImages[i].Visible = true;
             enemyImages[i].Sprite = enemySprites[0];
             battle.AddCombatant(enemies[i], ClassicLocation.Row.FRONT_RIGHT);
-            enemies[i].Name += " #" + i;
-            combattants.Add(enemies[i].Name, new CombatantData(enemies[i], enemyImages[i], enemySprites));
+            monsterNames[enemies[i]] = nameOf(enemies[i]) + " #" + i;
+            combattants.Add(nameOf(enemies[i]), new CombatantData(enemies[i], enemyImages[i], enemySprites));
         }
         battle.Initialize();
         timer = 2.0f;
@@ -384,18 +394,18 @@ public partial class Combat {
         if (hero.Race.Race == Race.HILL_DWARF) {
             if (hero.Levels[0].Class.Class == Class.BARBARIAN) {
                 heroImage.Sprite = DwarfBarbarianSprites[0];
-                combattants.Add(hero.Name, new CombatantData(hero, heroImage, DwarfBarbarianSprites));
+                combattants.Add(nameOf(hero), new CombatantData(hero, heroImage, DwarfBarbarianSprites));
             } else if (hero.Levels[0].Class.Class == Class.DRUID) {
                 heroImage.Sprite = DwarfDruidSprites[0];
-                combattants.Add(hero.Name, new CombatantData(hero, heroImage, DwarfDruidSprites));
+                combattants.Add(nameOf(hero), new CombatantData(hero, heroImage, DwarfDruidSprites));
             }
         } else if (hero.Race.Race == Race.HIGH_ELF) {
             if (hero.Levels[0].Class.Class == Class.BARBARIAN) {
                 heroImage.Sprite = ElfBarbarianSprites[0];
-                combattants.Add(hero.Name, new CombatantData(hero, heroImage, ElfBarbarianSprites));
+                combattants.Add(nameOf(hero), new CombatantData(hero, heroImage, ElfBarbarianSprites));
             } else if (hero.Levels[0].Class.Class == Class.DRUID) {
                 heroImage.Sprite = ElfDruidSprites[0];
-                combattants.Add(hero.Name, new CombatantData(hero, heroImage, ElfDruidSprites));
+                combattants.Add(nameOf(hero), new CombatantData(hero, heroImage, ElfDruidSprites));
             }
         }
     }
@@ -427,7 +437,7 @@ public partial class Combat {
             if (battle.CurrentCombatant.HitPoints <= 0) {
                 nextPhase();
             } else {
-                log(String.Format("It is {0}'s turn", battle.CurrentCombatant.Name));
+                log(String.Format("It is {0}'s turn", nameOf(battle.CurrentCombatant)));
                 state = CombatState.YOUR_TURN_SELECT_ACTION;
                 MenuText = SELECT_ACTION;
             }
@@ -489,8 +499,8 @@ public partial class Combat {
     }
 
     private void setAttackDefendSprites(Combatant attacker, Combatant target) {
-        combattants[attacker.Name].Image.Sprite = combattants[attacker.Name].Sprites[1];
-        combattants[target.Name].Image.Sprite = combattants[target.Name].Sprites[2];
+        combattants[nameOf(attacker)].Image.Sprite = combattants[nameOf(attacker)].Sprites[1];
+        combattants[nameOf(target)].Image.Sprite = combattants[nameOf(target)].Sprites[2];
     }
 
     private void log(string log) {
@@ -507,7 +517,7 @@ public partial class Combat {
         String text = "Select target\n";
         for (int i = 0; i < enemies.Length; i++) {
             if (enemies[i].HitPoints <= 0) continue;
-            text += String.Format("{0}. {1}\n", i + 1, enemies[i].Name);
+            text += String.Format("{0}. {1}\n", i + 1, nameOf(enemies[i]));
         }
         text += "0. Back";
         return text;
@@ -564,7 +574,7 @@ public partial class Combat {
             targets.Add(combattants[name].Combatant);
         }
         if (!battle.SpellCastAction(selectedSpell, selectedSlot, battle.CurrentCombatant.AvailableSpells[0], targets.ToArray()))
-            log(String.Format("{0}'s spell failed (probably targets out of range)", battle.CurrentCombatant.Name));
+            log(String.Format("{0}'s spell failed (probably targets out of range)", nameOf(battle.CurrentCombatant)));
         timer = 2.0f;
         foreach (Combatant target in targets) {
             setAttackDefendSprites(battle.CurrentCombatant, target);

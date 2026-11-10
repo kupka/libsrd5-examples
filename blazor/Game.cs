@@ -30,6 +30,16 @@ namespace Libsrd5Blazor {
         /// <summary>The active screen; receives number keys from App.razor.</summary>
         public static IKeyInputReceiver KeyReceiver;
 
+        /// <summary>
+        /// libsrd5 0.3 made Name read-only for apps (internal setter). The example sets a hero's
+        /// name through reflection until libsrd5 offers a public way.
+        /// </summary>
+        public static void SetName(CharacterSheet hero, string name) {
+            System.Reflection.PropertyInfo property = typeof(GuidClass).GetProperty("Name",
+                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+            property.GetSetMethod(true).Invoke(hero, new object[] { name });
+        }
+
         public static void StringPad(ref string s, int length) {
             if (s.Length > length)
                 s = s.Substring(0, length - 3) + "...";

@@ -34,7 +34,7 @@ public partial class CharacterCreation {
     private string[] nameSuffix = new string[] { "l", "r", "m", "f", "p", "t" };
     private string randomName {
         get {
-            return namePrefix[Dice.D10.Value - 1] + nameMiddle[Dice.D10.Value - 1] + nameMiddle2[Dice.D6.Value - 1] + nameSuffix[Dice.D6.Value - 1];
+            return namePrefix[Die.D10.Value - 1] + nameMiddle[Die.D10.Value - 1] + nameMiddle2[Die.D6.Value - 1] + nameSuffix[Die.D6.Value - 1];
         }
     }
     private const string DEFAULT_TEXT =
@@ -131,7 +131,7 @@ public partial class CharacterCreation {
                         return;
                     }
                 }
-                hero.Name = value;
+                Game.SetName(hero, value);
                 Game.Characters.Add(hero);
                 LoadScene("MainMenu");
             }

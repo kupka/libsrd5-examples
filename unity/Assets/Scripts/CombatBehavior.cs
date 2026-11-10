@@ -11,6 +11,7 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
     private int heroFront1 = -1, heroFront2 = -1, heroBack1 = -1, heroBack2 = -1;
     public Image[] LargeEnemies, MediumEnemies;
     public Sprite[] DwarfBarbarianSprites, DwarfDruidSprites, ElfBarbarianSprites, ElfDruidSprites;
+    public Sprite[] DwarfWizardSprites, ElfWizardSprites, HumanBarbarianSprites, HumanDruidSprites, HumanWizardSprites;
     public Sprite[] BoarSprites, OrcSprites, OgreSprites;
     public Image[] Conditions;
 
@@ -398,25 +399,20 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
         GlobalEvents.Handlers -= combatLogListener;
     }
 
+    private Sprite[] heroSprites(CharacterSheet hero) {
+        Class heroClass = hero.Levels[0].Class.Class;
+        if (hero.Race.Race == Race.HILL_DWARF)
+            return heroClass == Class.WIZARD ? DwarfWizardSprites : heroClass == Class.DRUID ? DwarfDruidSprites : DwarfBarbarianSprites;
+        if (hero.Race.Race == Race.HIGH_ELF)
+            return heroClass == Class.WIZARD ? ElfWizardSprites : heroClass == Class.DRUID ? ElfDruidSprites : ElfBarbarianSprites;
+        return heroClass == Class.WIZARD ? HumanWizardSprites : heroClass == Class.DRUID ? HumanDruidSprites : HumanBarbarianSprites;
+    }
+
     private void assignSprites(CharacterSheet hero, Image heroImage) {
         heroImage.gameObject.SetActive(true);
-        if (hero.Race.Race == Race.HILL_DWARF) {
-            if (hero.Levels[0].Class.Class == Class.BARBARIAN) {
-                heroImage.sprite = DwarfBarbarianSprites[0];
-                combattants.Add(nameOf(hero), new CombatantData(hero, heroImage, DwarfBarbarianSprites));
-            } else if (hero.Levels[0].Class.Class == Class.DRUID) {
-                heroImage.sprite = DwarfDruidSprites[0];
-                combattants.Add(nameOf(hero), new CombatantData(hero, heroImage, DwarfDruidSprites));
-            }
-        } else if (hero.Race.Race == Race.HIGH_ELF) {
-            if (hero.Levels[0].Class.Class == Class.BARBARIAN) {
-                heroImage.sprite = ElfBarbarianSprites[0];
-                combattants.Add(nameOf(hero), new CombatantData(hero, heroImage, ElfBarbarianSprites));
-            } else if (hero.Levels[0].Class.Class == Class.DRUID) {
-                heroImage.sprite = ElfDruidSprites[0];
-                combattants.Add(nameOf(hero), new CombatantData(hero, heroImage, ElfDruidSprites));
-            }
-        }
+        Sprite[] sprites = heroSprites(hero);
+        heroImage.sprite = sprites[0];
+        combattants.Add(nameOf(hero), new CombatantData(hero, heroImage, sprites));
     }
 
     // Update is called once per frame

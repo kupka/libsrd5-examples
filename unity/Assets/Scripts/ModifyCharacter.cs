@@ -8,7 +8,7 @@ using srd5;
 public class ModifyCharacter : MonoBehaviour, KeyInputReceiver {
     public Image CharacterImage;
     public Text CharacterName, CharacterText, MenuText;
-    public Sprite DwarfBerserker, DwarfDruid, ElfBerserker, ElfDruid;
+    public Sprite DwarfBerserker, DwarfDruid, DwarfWizard, ElfBerserker, ElfDruid, ElfWizard, HumanBerserker, HumanDruid, HumanWizard;
 
     enum ModifyCharacterState {
         DEFAULT,
@@ -70,17 +70,13 @@ public class ModifyCharacter : MonoBehaviour, KeyInputReceiver {
         hero = Game.Characters[Game.SelectedCharacter];
         MenuText.text = DEFAULT_TEXT;
         CharacterName.text = hero.Name;
-        if (hero.Race.Race == Race.HILL_DWARF) {
-            if (hero.Levels[0].Class.Class == Class.DRUID)
-                CharacterImage.sprite = DwarfDruid;
-            else
-                CharacterImage.sprite = DwarfBerserker;
-        } else {
-            if (hero.Levels[0].Class.Class == Class.DRUID)
-                CharacterImage.sprite = ElfDruid;
-            else
-                CharacterImage.sprite = ElfBerserker;
-        }
+        Class heroClass = hero.Levels[0].Class.Class;
+        if (hero.Race.Race == Race.HILL_DWARF)
+            CharacterImage.sprite = heroClass == Class.WIZARD ? DwarfWizard : heroClass == Class.DRUID ? DwarfDruid : DwarfBerserker;
+        else if (hero.Race.Race == Race.HIGH_ELF)
+            CharacterImage.sprite = heroClass == Class.WIZARD ? ElfWizard : heroClass == Class.DRUID ? ElfDruid : ElfBerserker;
+        else
+            CharacterImage.sprite = heroClass == Class.WIZARD ? HumanWizard : heroClass == Class.DRUID ? HumanDruid : HumanBerserker;
         displayAbilitiesAndAttacks();
     }
 
@@ -191,15 +187,24 @@ public class ModifyCharacter : MonoBehaviour, KeyInputReceiver {
         }
     }
 
-    private void prepareDruidSpells() {
-        if (hero.Levels[0].Class.Class != Class.DRUID) return;
-        AvailableSpells druidSpells = null;
+    // Druids and wizards learn and prepare a fixed selection of spells implemented in libsrd5
+    private void prepareSpells() {
+        Class heroClass = hero.Levels[0].Class.Class;
+        Spell[] selection;
+        if (heroClass == Class.DRUID)
+            selection = new Spell[] { Spells.Shillelagh, Spells.CharmPerson, Spells.CureWounds, Spells.HealingWord };
+        else if (heroClass == Class.WIZARD)
+            selection = new Spell[] { Spells.FireBolt, Spells.RayOfFrost, Spells.MagicMissile, Spells.BurningHands, Spells.Sleep };
+        else
+            return;
+        AvailableSpells classSpells = null;
         foreach (AvailableSpells spells in hero.AvailableSpells) {
-            if (spells.CharacterClass.Class == Class.DRUID)
-                druidSpells = spells;
+            if (spells.CharacterClass.Class == heroClass)
+                classSpells = spells;
         }
-        druidSpells.AddKnownSpell(Spells.Shillelagh, Spells.CharmPerson, Spells.CureWounds, Spells.HealingWord);
-        druidSpells.AddPreparedSpell(Spells.Shillelagh, Spells.CharmPerson, Spells.CureWounds, Spells.HealingWord);
+        if (classSpells == null) return;
+        classSpells.AddKnownSpell(selection);
+        classSpells.AddPreparedSpell(selection);
     }
 
     public void KeyPressHandler(KeyCode code) {
@@ -245,7 +250,7 @@ public class ModifyCharacter : MonoBehaviour, KeyInputReceiver {
                 state = ModifyCharacterState.PREPARE_SPELLS;
                 MenuText.text = PREPARE_SPELLS;
                 page = ModifyCharacterPage.SPELLS;
-                prepareDruidSpells();
+                prepareSpells();
                 displaySpells();
             } else if (code == KeyCode.Alpha7) {
                 // Don't add if one is already in inventory

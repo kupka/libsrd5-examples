@@ -23,7 +23,8 @@ public partial class CharacterCreation {
 
     private string CharacterImage = Game.WESNOTH + "dwarf_berserker.png";
 
-    private const string Elf = Game.WESNOTH + "elf_berserker.png", Dwarf = Game.WESNOTH + "dwarf_berserker.png";
+    private const string Elf = Game.WESNOTH + "elf_berserker.png", Dwarf = Game.WESNOTH + "dwarf_berserker.png",
+        Human = Game.WESNOTH + "human_berserker.png";
 
     private Race selectedRace = Race.HILL_DWARF;
     private CreateCharacterState state = CreateCharacterState.DEFAULT;
@@ -45,10 +46,12 @@ public partial class CharacterCreation {
     private const string RACE_SELECTION_TEXT =
 @"1. Hill Dwarf
 2. High Elf
+3. Human
 0. Back";
     private const string CLASS_SELECTION_TEXT =
 @"1. Barbarian
 2. Druid
+3. Wizard
 0. Back";
 
     private const string DONE_TEXT =
@@ -90,6 +93,12 @@ public partial class CharacterCreation {
                 MenuText = DEFAULT_TEXT;
                 CharacterImage = Elf;
                 reRollAbilities();
+            } else if (key == KeyCode.Alpha3) {
+                selectedRace = Race.HUMAN;
+                state = CreateCharacterState.DEFAULT;
+                MenuText = DEFAULT_TEXT;
+                CharacterImage = Human;
+                reRollAbilities();
             }
         } else if (state == CreateCharacterState.CHOSE_CLASS) {
             if (key == KeyCode.Alpha0) {
@@ -102,6 +111,11 @@ public partial class CharacterCreation {
                 updateCharacterText();
             } else if (key == KeyCode.Alpha2) {
                 hero.AddLevel(CharacterClasses.Druid);
+                state = CreateCharacterState.DONE;
+                MenuText = DONE_TEXT;
+                updateCharacterText();
+            } else if (key == KeyCode.Alpha3) {
+                hero.AddLevel(CharacterClasses.Wizard);
                 state = CreateCharacterState.DONE;
                 MenuText = DONE_TEXT;
                 updateCharacterText();

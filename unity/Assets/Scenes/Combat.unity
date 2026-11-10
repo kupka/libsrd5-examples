@@ -558,6 +558,26 @@ MonoBehaviour:
   - {fileID: 21300000, guid: b1d6fd8c73bcfd943889167f98ac116f, type: 3}
   - {fileID: 21300000, guid: 75d9826281e6f714e8df8e99412a8a38, type: 3}
   - {fileID: 21300000, guid: 5202ac99a60c9c54486f7c3e171a01ce, type: 3}
+  DwarfWizardSprites:
+  - {fileID: 21300000, guid: 99a6cc81a382428b8000361cc2a0c577, type: 3}
+  - {fileID: 21300000, guid: 18f2fb9a0f104d6681bd27c99e783807, type: 3}
+  - {fileID: 21300000, guid: 868cea375e70469c88bac753728abd19, type: 3}
+  ElfWizardSprites:
+  - {fileID: 21300000, guid: 693a5588367f4a47a23dd6641e6d4bbc, type: 3}
+  - {fileID: 21300000, guid: 73a9ce34b0974dcc93d06e4d99860c7e, type: 3}
+  - {fileID: 21300000, guid: 2c08746f806b485da9c9a2be7210c4a9, type: 3}
+  HumanBarbarianSprites:
+  - {fileID: 21300000, guid: 05dfef8ebe374480b98f0e814fcbc506, type: 3}
+  - {fileID: 21300000, guid: bd5106eb417f4e8cbb042493f8ea9698, type: 3}
+  - {fileID: 21300000, guid: bc0ce5119df945e49b3b946d182dc987, type: 3}
+  HumanDruidSprites:
+  - {fileID: 21300000, guid: 27447dcf0c3543e5906f31696f9f888b, type: 3}
+  - {fileID: 21300000, guid: 8dbdbfae0bde4ffea52816551cd5f34a, type: 3}
+  - {fileID: 21300000, guid: 5c1c98aef6f84bd1985831d36a333a0a, type: 3}
+  HumanWizardSprites:
+  - {fileID: 21300000, guid: d3a0aa8bc4b8463aaf88db458a088276, type: 3}
+  - {fileID: 21300000, guid: 2967ccffee81405e88bf047f8d3d3997, type: 3}
+  - {fileID: 21300000, guid: 48fb4795054f48d58742f84a8760a588, type: 3}
   BoarSprites:
   - {fileID: 21300000, guid: dc2e5074516ee5441a47e8b544b171ca, type: 3}
   - {fileID: 21300000, guid: cfaac232fda51d74fa2eb5a252c03449, type: 3}

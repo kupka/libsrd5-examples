@@ -13,7 +13,10 @@ public partial class CharacterPrepare {
     // Uses the Unity rich text tags (<color=yellow>); rendered by Rich() in the markup.
     private string CharacterText = "";
     private const string DwarfBerserker = Game.WESNOTH + "dwarf_berserker.png", DwarfDruid = Game.WESNOTH + "dwarf_druid.png",
-        ElfBerserker = Game.WESNOTH + "elf_berserker.png", ElfDruid = Game.WESNOTH + "elf_druid.png";
+        ElfBerserker = Game.WESNOTH + "elf_berserker.png", ElfDruid = Game.WESNOTH + "elf_druid.png",
+        DwarfWizard = Game.WESNOTH + "dwarf_wizard.png", ElfWizard = Game.WESNOTH + "elf_wizard.png",
+        HumanBerserker = Game.WESNOTH + "human_berserker.png", HumanDruid = Game.WESNOTH + "human_druid.png",
+        HumanWizard = Game.WESNOTH + "human_wizard.png";
 
     enum ModifyCharacterState {
         DEFAULT,
@@ -74,17 +77,13 @@ public partial class CharacterPrepare {
         hero = Game.Characters[Game.SelectedCharacter];
         MenuText = DEFAULT_TEXT;
         CharacterName = hero.Name;
-        if (hero.Race.Race == Race.HILL_DWARF) {
-            if (hero.Levels[0].Class.Class == Class.DRUID)
-                CharacterImage = DwarfDruid;
-            else
-                CharacterImage = DwarfBerserker;
-        } else {
-            if (hero.Levels[0].Class.Class == Class.DRUID)
-                CharacterImage = ElfDruid;
-            else
-                CharacterImage = ElfBerserker;
-        }
+        Class heroClass = hero.Levels[0].Class.Class;
+        if (hero.Race.Race == Race.HILL_DWARF)
+            CharacterImage = heroClass == Class.WIZARD ? DwarfWizard : heroClass == Class.DRUID ? DwarfDruid : DwarfBerserker;
+        else if (hero.Race.Race == Race.HIGH_ELF)
+            CharacterImage = heroClass == Class.WIZARD ? ElfWizard : heroClass == Class.DRUID ? ElfDruid : ElfBerserker;
+        else
+            CharacterImage = heroClass == Class.WIZARD ? HumanWizard : heroClass == Class.DRUID ? HumanDruid : HumanBerserker;
         displayAbilitiesAndAttacks();
     }
 
@@ -190,15 +189,24 @@ public partial class CharacterPrepare {
         }
     }
 
-    private void prepareDruidSpells() {
-        if (hero.Levels[0].Class.Class != Class.DRUID) return;
-        AvailableSpells druidSpells = null;
+    // Druids and wizards learn and prepare a fixed selection of spells implemented in libsrd5
+    private void prepareSpells() {
+        Class heroClass = hero.Levels[0].Class.Class;
+        Spell[] selection;
+        if (heroClass == Class.DRUID)
+            selection = new Spell[] { Spells.Shillelagh, Spells.CharmPerson, Spells.CureWounds, Spells.HealingWord };
+        else if (heroClass == Class.WIZARD)
+            selection = new Spell[] { Spells.FireBolt, Spells.RayOfFrost, Spells.MagicMissile, Spells.BurningHands, Spells.Sleep };
+        else
+            return;
+        AvailableSpells classSpells = null;
         foreach (AvailableSpells spells in hero.AvailableSpells) {
-            if (spells.CharacterClass.Class == Class.DRUID)
-                druidSpells = spells;
+            if (spells.CharacterClass.Class == heroClass)
+                classSpells = spells;
         }
-        druidSpells.AddKnownSpell(Spells.Shillelagh, Spells.CharmPerson, Spells.CureWounds, Spells.HealingWord);
-        druidSpells.AddPreparedSpell(Spells.Shillelagh, Spells.CharmPerson, Spells.CureWounds, Spells.HealingWord);
+        if (classSpells == null) return;
+        classSpells.AddKnownSpell(selection);
+        classSpells.AddPreparedSpell(selection);
     }
 
     protected override void OnKey(KeyCode code) {
@@ -244,7 +252,7 @@ public partial class CharacterPrepare {
                 state = ModifyCharacterState.PREPARE_SPELLS;
                 MenuText = PREPARE_SPELLS;
                 page = ModifyCharacterPage.SPELLS;
-                prepareDruidSpells();
+                prepareSpells();
                 displaySpells();
             } else if (code == KeyCode.Alpha7) {
                 // Don't add if one is already in inventory

@@ -16,6 +16,9 @@ public partial class Combat {
     private Slot[] MediumEnemies = { new Slot(266, 170, 192, 192), new Slot(200, 80, 192, 192), new Slot(270, -44, 192, 192) };
     private string[] DwarfBarbarianSprites = Game.UnitSprites("dwarf_berserker"), DwarfDruidSprites = Game.UnitSprites("dwarf_druid"),
         ElfBarbarianSprites = Game.UnitSprites("elf_berserker"), ElfDruidSprites = Game.UnitSprites("elf_druid");
+    private string[] DwarfWizardSprites = Game.UnitSprites("dwarf_wizard"), ElfWizardSprites = Game.UnitSprites("elf_wizard"),
+        HumanBarbarianSprites = Game.UnitSprites("human_berserker"), HumanDruidSprites = Game.UnitSprites("human_druid"),
+        HumanWizardSprites = Game.UnitSprites("human_wizard");
     private string[] BoarSprites = Game.UnitSprites("boar"), OrcSprites = Game.UnitSprites("orc"), OgreSprites = Game.UnitSprites("ogre");
 
     /// <summary>Unity: condition icon centre 20px right / 20px up of the unit centre, 64x64.</summary>
@@ -408,25 +411,20 @@ public partial class Combat {
         GlobalEvents.Handlers -= combatLogListener;
     }
 
+    private string[] heroSprites(CharacterSheet hero) {
+        Class heroClass = hero.Levels[0].Class.Class;
+        if (hero.Race.Race == Race.HILL_DWARF)
+            return heroClass == Class.WIZARD ? DwarfWizardSprites : heroClass == Class.DRUID ? DwarfDruidSprites : DwarfBarbarianSprites;
+        if (hero.Race.Race == Race.HIGH_ELF)
+            return heroClass == Class.WIZARD ? ElfWizardSprites : heroClass == Class.DRUID ? ElfDruidSprites : ElfBarbarianSprites;
+        return heroClass == Class.WIZARD ? HumanWizardSprites : heroClass == Class.DRUID ? HumanDruidSprites : HumanBarbarianSprites;
+    }
+
     private void assignSprites(CharacterSheet hero, Slot heroImage) {
         heroImage.Visible = true;
-        if (hero.Race.Race == Race.HILL_DWARF) {
-            if (hero.Levels[0].Class.Class == Class.BARBARIAN) {
-                heroImage.Sprite = DwarfBarbarianSprites[0];
-                combattants.Add(nameOf(hero), new CombatantData(hero, heroImage, DwarfBarbarianSprites));
-            } else if (hero.Levels[0].Class.Class == Class.DRUID) {
-                heroImage.Sprite = DwarfDruidSprites[0];
-                combattants.Add(nameOf(hero), new CombatantData(hero, heroImage, DwarfDruidSprites));
-            }
-        } else if (hero.Race.Race == Race.HIGH_ELF) {
-            if (hero.Levels[0].Class.Class == Class.BARBARIAN) {
-                heroImage.Sprite = ElfBarbarianSprites[0];
-                combattants.Add(nameOf(hero), new CombatantData(hero, heroImage, ElfBarbarianSprites));
-            } else if (hero.Levels[0].Class.Class == Class.DRUID) {
-                heroImage.Sprite = ElfDruidSprites[0];
-                combattants.Add(nameOf(hero), new CombatantData(hero, heroImage, ElfDruidSprites));
-            }
-        }
+        string[] sprites = heroSprites(hero);
+        heroImage.Sprite = sprites[0];
+        combattants.Add(nameOf(hero), new CombatantData(hero, heroImage, sprites));
     }
 
     // Unity's Update(): a ~20 fps loop for the timer between combat phases

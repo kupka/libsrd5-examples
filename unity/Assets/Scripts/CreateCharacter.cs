@@ -19,7 +19,7 @@ public class CreateCharacter : MonoBehaviour, KeyInputReceiver {
 
     public Image CharacterImage;
 
-    public Sprite Elf, Dwarf;
+    public Sprite Elf, Dwarf, Human;
 
     private Race selectedRace = Race.HILL_DWARF;
     private CreateCharacterState state = CreateCharacterState.DEFAULT;
@@ -41,10 +41,12 @@ public class CreateCharacter : MonoBehaviour, KeyInputReceiver {
     private const string RACE_SELECTION_TEXT =
 @"1. Hill Dwarf
 2. High Elf
+3. Human
 0. Back";
     private const string CLASS_SELECTION_TEXT =
 @"1. Barbarian
 2. Druid
+3. Wizard
 0. Back";
 
     private const string DONE_TEXT =
@@ -104,6 +106,12 @@ public class CreateCharacter : MonoBehaviour, KeyInputReceiver {
                 MenuText.text = DEFAULT_TEXT;
                 CharacterImage.sprite = Elf;
                 reRollAbilities();
+            } else if (key == KeyCode.Alpha3) {
+                selectedRace = Race.HUMAN;
+                state = CreateCharacterState.DEFAULT;
+                MenuText.text = DEFAULT_TEXT;
+                CharacterImage.sprite = Human;
+                reRollAbilities();
             }
         } else if (state == CreateCharacterState.CHOSE_CLASS) {
             if (key == KeyCode.Alpha0) {
@@ -116,6 +124,11 @@ public class CreateCharacter : MonoBehaviour, KeyInputReceiver {
                 updateCharacterText();
             } else if (key == KeyCode.Alpha2) {
                 hero.AddLevel(CharacterClasses.Druid);
+                state = CreateCharacterState.DONE;
+                MenuText.text = DONE_TEXT;
+                updateCharacterText();
+            } else if (key == KeyCode.Alpha3) {
+                hero.AddLevel(CharacterClasses.Wizard);
                 state = CreateCharacterState.DONE;
                 MenuText.text = DONE_TEXT;
                 updateCharacterText();

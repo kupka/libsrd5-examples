@@ -16,7 +16,7 @@ public partial class CreateCharacter : Control, IKeyInputReceiver {
     private LineEdit NameInput;
     private BaseButton OKButton, DiceButton;
     private TextureRect CharacterImage;
-    private Texture2D Elf, Dwarf;
+    private Texture2D Elf, Dwarf, Human;
 
     private Race selectedRace = Race.HILL_DWARF;
     private CreateCharacterState state = CreateCharacterState.DEFAULT;
@@ -38,10 +38,12 @@ public partial class CreateCharacter : Control, IKeyInputReceiver {
     private const string RACE_SELECTION_TEXT =
 @"1. Hill Dwarf
 2. High Elf
+3. Human
 0. Back";
     private const string CLASS_SELECTION_TEXT =
 @"1. Barbarian
 2. Druid
+3. Wizard
 0. Back";
 
     private const string DONE_TEXT =
@@ -59,6 +61,7 @@ public partial class CreateCharacter : Control, IKeyInputReceiver {
         DiceButton = GetNode<BaseButton>("Darken/NameInput/ButtonRandom");
         Elf = GD.Load<Texture2D>(Game.WESNOTH + "elf_berserker.png");
         Dwarf = GD.Load<Texture2D>(Game.WESNOTH + "dwarf_berserker.png");
+        Human = GD.Load<Texture2D>(Game.WESNOTH + "human_berserker.png");
 
         // Unity: InputField.onEndEdit + check for Return
         NameInput.TextSubmitted += (string value) => KeyPressHandler(Key.Enter);
@@ -104,6 +107,12 @@ public partial class CreateCharacter : Control, IKeyInputReceiver {
                 MenuText.Text = DEFAULT_TEXT;
                 CharacterImage.Texture = Elf;
                 reRollAbilities();
+            } else if (key == Key.Key3) {
+                selectedRace = Race.HUMAN;
+                state = CreateCharacterState.DEFAULT;
+                MenuText.Text = DEFAULT_TEXT;
+                CharacterImage.Texture = Human;
+                reRollAbilities();
             }
         } else if (state == CreateCharacterState.CHOSE_CLASS) {
             if (key == Key.Key0) {
@@ -116,6 +125,11 @@ public partial class CreateCharacter : Control, IKeyInputReceiver {
                 updateCharacterText();
             } else if (key == Key.Key2) {
                 hero.AddLevel(CharacterClasses.Druid);
+                state = CreateCharacterState.DONE;
+                MenuText.Text = DONE_TEXT;
+                updateCharacterText();
+            } else if (key == Key.Key3) {
+                hero.AddLevel(CharacterClasses.Wizard);
                 state = CreateCharacterState.DONE;
                 MenuText.Text = DONE_TEXT;
                 updateCharacterText();

@@ -45,14 +45,14 @@ public class FixedSizedQueue<T> {
     }
 }
 
-public struct CombattantData {
-    public Combattant Combattant;
+public struct CombatantData {
+    public Combatant Combatant;
     public Image Image;
     public Sprite[] Sprites;
     public Dictionary<ConditionType, Image> ConditionIcons;
 
-    public CombattantData(Combattant combattant, Image image, Sprite[] sprites) {
-        Combattant = combattant;
+    public CombatantData(Combatant combattant, Image image, Sprite[] sprites) {
+        Combatant = combattant;
         Image = image;
         Sprites = sprites;
         ConditionIcons = new Dictionary<ConditionType, Image>();

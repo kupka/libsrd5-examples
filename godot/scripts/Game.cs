@@ -70,14 +70,14 @@ public class FixedSizedQueue<T> {
     }
 }
 
-public struct CombattantData {
-    public Combattant Combattant;
+public struct CombatantData {
+    public Combatant Combatant;
     public TextureRect Image;
     public Texture2D[] Sprites;
     public Dictionary<ConditionType, Control> ConditionIcons;
 
-    public CombattantData(Combattant combattant, TextureRect image, Texture2D[] sprites) {
-        Combattant = combattant;
+    public CombatantData(Combatant combattant, TextureRect image, Texture2D[] sprites) {
+        Combatant = combattant;
         Image = image;
         Sprites = sprites;
         ConditionIcons = new Dictionary<ConditionType, Control>();

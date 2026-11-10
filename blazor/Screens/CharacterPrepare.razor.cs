@@ -100,14 +100,14 @@ public partial class CharacterPrepare {
         if (hero.MeleeAttacks.Length > 0) {
             foreach (Attack attack in hero.MeleeAttacks) {
                 CharacterText += String.Format("{0}, {1} To Hit, {2} {3} Damage\n", attack.Name, attack.AttackBonus.ToString("+#;-#;0"),
-                attack.Damage.Dices.ToString(), attack.Damage.Type.Name());
+                attack.Damage.Dice.ToString(), attack.Damage.Type.Name());
             }
         }
         CharacterText += "\n<color=yellow>Ranged Attacks</color>\n";
         if (hero.RangedAttacks.Length > 0) {
             foreach (Attack attack in hero.RangedAttacks) {
                 CharacterText += String.Format("{0}, {1} To Hit, {2} {3} Damage\n", attack.Name, attack.AttackBonus.ToString("+#;-#;0"),
-                attack.Damage.Dices.ToString(), attack.Damage.Type.Name());
+                attack.Damage.Dice.ToString(), attack.Damage.Type.Name());
             }
         }
     }
@@ -249,7 +249,7 @@ public partial class CharacterPrepare {
             } else if (code == KeyCode.Alpha7) {
                 // Don't add if one is already in inventory
                 foreach (Item item in hero.Inventory.Bag) {
-                    if (item.IsThisA(Potions.PotionOfHealing))
+                    if (item.Is(Potions.PotionOfHealing))
                         return;
                 }
                 hero.Inventory.AddToBag(Potions.PotionOfHealing);
@@ -258,7 +258,7 @@ public partial class CharacterPrepare {
             } else if (code == KeyCode.Alpha8) {
                 // Replace if one is already in inventory (charges could be used up)
                 foreach (Item item in hero.Inventory.Bag) {
-                    if (item.IsThisA(Wands.WandOfMagicMissiles)) {
+                    if (item.Is(Wands.WandOfMagicMissiles)) {
                         hero.Inventory.RemoveFromBag(item);
                         break;
                     }

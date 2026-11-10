@@ -39,7 +39,8 @@ a `.nojekyll` file, which the CI build adds).
 The screen code (`Screens/*.razor.cs`) keeps the game logic of the Unity scripts line for line, including the
 `KeyCode` values (see `Game.cs`).
 
-libsrd5 is referenced as the same prebuilt DLL the Unity project ships (`lib/libsrd5.dll`, version 0.1.15).
+libsrd5 is referenced as a prebuilt DLL (`lib/libsrd5.dll`, currently 0.3.4), the same one the Unity project uses.
+It is built by CI from the libsrd5 version pinned in `../libsrd5.ref` (see the root README).
 
 ## License
 

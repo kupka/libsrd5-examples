@@ -22,6 +22,12 @@ Blazor WebAssembly port of the Unity3D demo in the `blazor` folder. Runs in the 
 Live Demo at (https://kupka.github.io/libsrd5-examples/blazor/)
 See [blazor/README.md](blazor/README.md).
 
+# libsrd5 version
+
+All examples use libsrd5 0.3.4. The version is pinned in [libsrd5.ref](libsrd5.ref) (a libsrd5 commit). To upgrade,
+change it on a branch: the `libsrd5` workflow builds that version and commits the DLL into the Unity, Godot and
+Blazor projects; then open a pull request to build and test the examples against it.
+
 # Builds
 
 Every pull request builds the Godot (Windows, Linux, Android) and Blazor versions; the builds are attached to the

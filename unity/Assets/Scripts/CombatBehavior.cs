@@ -51,7 +51,7 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
         WON, LOST
     }
     private CombatState state = CombatState.ENEMY_TURN;
-    private Dictionary<string, CombattantData> combattants = new Dictionary<string, CombattantData>();
+    private Dictionary<string, CombatantData> combattants = new Dictionary<string, CombatantData>();
 
     public void KeyPressHandler(KeyCode code) {
         if (timer > 0) return;
@@ -73,7 +73,7 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
                 selectedCharges = 1;
             }
         } else if (state == CombatState.ATTACK_SELECT_TARGET) {
-            Combattant target = null;
+            Combatant target = null;
             if (code == KeyCode.Alpha0) {
                 returnToMain();
             } else if (code == KeyCode.Alpha1) {
@@ -83,12 +83,12 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
             }
             if (target == null || target.HitPoints <= 0) return;
             state = CombatState.ATTACK_EXECUTED;
-            if (battle.CurrentCombattant.RangedAttacks.Length > 0)
+            if (battle.CurrentCombatant.RangedAttacks.Length > 0)
                 battle.RangedAttackAction(target);
             else
                 battle.MeleeAttackAction(target);
             timer = 2.0f;
-            setAttackDefendSprites(battle.CurrentCombattant, target);
+            setAttackDefendSprites(battle.CurrentCombatant, target);
         } else if (state == CombatState.WON || state == CombatState.LOST) {
             if (code == KeyCode.Alpha0) {
                 foreach (CharacterSheet hero in Game.Characters) {
@@ -101,9 +101,9 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
                 returnToMain();
             } else {
                 int index = code - KeyCode.Alpha1;
-                if (battle.CurrentCombattant.AvailableSpells.Length == 0) return;
-                if (index >= battle.CurrentCombattant.AvailableSpells[0].PreparedSpells.Length) return;
-                selectedSpell = battle.CurrentCombattant.AvailableSpells[0].PreparedSpells[index];
+                if (battle.CurrentCombatant.AvailableSpells.Length == 0) return;
+                if (index >= battle.CurrentCombatant.AvailableSpells[0].PreparedSpells.Length) return;
+                selectedSpell = battle.CurrentCombatant.AvailableSpells[0].PreparedSpells[index];
                 if (selectedSpell.Level == SpellLevel.CANTRIP) {
                     selectedSlot = SpellLevel.CANTRIP;
                     if (selectedSpell.MaximumTargets == 0) {
@@ -123,7 +123,7 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
             } else {
                 int index = code - KeyCode.Alpha0;
                 if (index < (int)selectedSpell.Level) return;
-                int slots = battle.CurrentCombattant.AvailableSpells[0].SlotsCurrent[index];
+                int slots = battle.CurrentCombatant.AvailableSpells[0].SlotsCurrent[index];
                 if (slots == 0) return;
                 selectedSlot = (SpellLevel)index;
                 if (selectedSpell.MaximumTargets == 0) {
@@ -162,7 +162,7 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
                 }
             } else {
                 int index = code - KeyCode.Alpha1;
-                CharacterInventory inventory = ((CharacterSheet)battle.CurrentCombattant).Inventory;
+                CharacterInventory inventory = ((CharacterSheet)battle.CurrentCombatant).Inventory;
                 if (index > inventory.Bag.Length) return;
                 selectedTargets.Add(inventory.Bag[index].ToString());
                 MenuText.text = getEquippableItems();
@@ -172,12 +172,12 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
                 returnToMain();
             } else {
                 int index = code - KeyCode.Alpha1;
-                CharacterInventory inventory = ((CharacterSheet)battle.CurrentCombattant).Inventory;
+                CharacterInventory inventory = ((CharacterSheet)battle.CurrentCombatant).Inventory;
                 if (index > inventory.Bag.Length) return;
                 int i = 0;
                 foreach (Item item in inventory.Bag) {
                     if (item is Consumable && i++ == index) {
-                        CharacterSheet hero = (CharacterSheet)battle.CurrentCombattant;
+                        CharacterSheet hero = (CharacterSheet)battle.CurrentCombatant;
                         hero.Consume((Consumable)item);
                         timer = 1.0f;
                     } else if (item is Usable && i++ == index) {
@@ -221,10 +221,10 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
     }
 
     private void toggleSelectedTarget(int index) {
-        Dictionary<string, CombattantData>.Enumerator enumerator = combattants.GetEnumerator();
+        Dictionary<string, CombatantData>.Enumerator enumerator = combattants.GetEnumerator();
         int i = 0;
         while (enumerator.MoveNext()) {
-            KeyValuePair<string, CombattantData> current = enumerator.Current;
+            KeyValuePair<string, CombatantData> current = enumerator.Current;
             if (index == i++) {
                 if (selectedTargets.Contains(current.Key))
                     selectedTargets.Remove(current.Key);
@@ -261,7 +261,7 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
             GlobalEvents.DCRolled dc = (GlobalEvents.DCRolled)args;
             string success = dc.Success ? "Sucess" : "Fail";
             log(String.Format("{0} rolled {1} {2} DC :{3} ({4})", dc.Roller.Name, dc.Ability.Name, dc.DC, dc.Roll, success));
-        } else if (GlobalEvents.EventTypes.SPELL.Equals(sender)) {
+        } else if (GlobalEvents.EventTypes.AFFECT_BY_SPELL.Equals(sender)) {
             GlobalEvents.SpellAffection spell = (GlobalEvents.SpellAffection)args;
             string affected = spell.Affected ? "affected" : "unaffected";
             log(String.Format("{0} is {1} by {2}'s {3} Spell", spell.Target.Name, affected, spell.Caster.Name, spell.Spell.Name()));
@@ -314,7 +314,7 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
         int back = 0;
         foreach (CharacterSheet hero in Game.Characters) {
             if (i == Game.FrontLineChar1 || i == Game.FrontLineChar2) {
-                battle.AddCombattant(hero, ClassicLocation.Row.FRONT_LEFT);
+                battle.AddCombatant(hero, ClassicLocation.Row.FRONT_LEFT);
                 if (front++ == 0) {
                     heroFront1 = i;
                     assignSprites(hero, HeroFront1);
@@ -323,7 +323,7 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
                     assignSprites(hero, HeroFront2);
                 }
             } else {
-                battle.AddCombattant(hero, ClassicLocation.Row.BACK_LEFT);
+                battle.AddCombatant(hero, ClassicLocation.Row.BACK_LEFT);
                 if (back++ == 0) {
                     heroBack1 = i;
                     assignSprites(hero, HeroBack1);
@@ -357,9 +357,9 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
         for (i = 0; i < enemies.Length; i++) {
             enemyImages[i].gameObject.SetActive(true);
             enemyImages[i].sprite = enemySprites[0];
-            battle.AddCombattant(enemies[i], ClassicLocation.Row.FRONT_RIGHT);
+            battle.AddCombatant(enemies[i], ClassicLocation.Row.FRONT_RIGHT);
             enemies[i].Name += " #" + i;
-            combattants.Add(enemies[i].Name, new CombattantData(enemies[i], enemyImages[i], enemySprites));
+            combattants.Add(enemies[i].Name, new CombatantData(enemies[i], enemyImages[i], enemySprites));
         }
         battle.Initialize();
         timer = 2.0f;
@@ -374,18 +374,18 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
         if (hero.Race.Race == Race.HILL_DWARF) {
             if (hero.Levels[0].Class.Class == Class.BARBARIAN) {
                 heroImage.sprite = DwarfBarbarianSprites[0];
-                combattants.Add(hero.Name, new CombattantData(hero, heroImage, DwarfBarbarianSprites));
+                combattants.Add(hero.Name, new CombatantData(hero, heroImage, DwarfBarbarianSprites));
             } else if (hero.Levels[0].Class.Class == Class.DRUID) {
                 heroImage.sprite = DwarfDruidSprites[0];
-                combattants.Add(hero.Name, new CombattantData(hero, heroImage, DwarfDruidSprites));
+                combattants.Add(hero.Name, new CombatantData(hero, heroImage, DwarfDruidSprites));
             }
         } else if (hero.Race.Race == Race.HIGH_ELF) {
             if (hero.Levels[0].Class.Class == Class.BARBARIAN) {
                 heroImage.sprite = ElfBarbarianSprites[0];
-                combattants.Add(hero.Name, new CombattantData(hero, heroImage, ElfBarbarianSprites));
+                combattants.Add(hero.Name, new CombatantData(hero, heroImage, ElfBarbarianSprites));
             } else if (hero.Levels[0].Class.Class == Class.DRUID) {
                 heroImage.sprite = ElfDruidSprites[0];
-                combattants.Add(hero.Name, new CombattantData(hero, heroImage, ElfDruidSprites));
+                combattants.Add(hero.Name, new CombatantData(hero, heroImage, ElfDruidSprites));
             }
         }
     }
@@ -403,16 +403,16 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
         clearAttackDefendSprites();
         if (state == CombatState.WON || state == CombatState.LOST) return;
         for (TurnPhase phase = battle.NextPhase(); phase != TurnPhase.ACTION; phase = battle.NextPhase()) ;
-        if (battle.CurrentCombattant is CharacterSheet) {
-            if (battle.CurrentCombattant.HitPoints <= 0) {
+        if (battle.CurrentCombatant is CharacterSheet) {
+            if (battle.CurrentCombatant.HitPoints <= 0) {
                 nextPhase();
             } else {
-                log(String.Format("It is {0}'s turn", battle.CurrentCombattant.Name));
+                log(String.Format("It is {0}'s turn", battle.CurrentCombatant.Name));
                 state = CombatState.YOUR_TURN_SELECT_ACTION;
                 MenuText.text = SELECT_ACTION;
             }
             return;
-        } else if (battle.CurrentCombattant.HitPoints <= 0) {
+        } else if (battle.CurrentCombatant.HitPoints <= 0) {
             nextPhase();
             return;
         }
@@ -435,16 +435,16 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
         if (battle.Distance(target) > 5) {
             battle.RangedAttackAction(target);
             timer = 2.0f;
-            setAttackDefendSprites(battle.CurrentCombattant, target);
+            setAttackDefendSprites(battle.CurrentCombatant, target);
         } else {
             battle.MeleeAttackAction(target);
             timer = 2.0f;
-            setAttackDefendSprites(battle.CurrentCombattant, target);
+            setAttackDefendSprites(battle.CurrentCombatant, target);
         }
     }
 
     private void clearAttackDefendSprites() {
-        foreach (CombattantData data in combattants.Values) {
+        foreach (CombatantData data in combattants.Values) {
             checkIfWonOrLost();
             data.Image.sprite = data.Sprites[0];
         }
@@ -453,10 +453,10 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
     private void checkIfWonOrLost() {
         bool heroAlive = false;
         bool monsterAlive = false;
-        foreach (CombattantData data in combattants.Values) {
-            if (data.Combattant is Monster && data.Combattant.HitPoints > 0)
+        foreach (CombatantData data in combattants.Values) {
+            if (data.Combatant is Monster && data.Combatant.HitPoints > 0)
                 monsterAlive = true;
-            if (data.Combattant is CharacterSheet && data.Combattant.HitPoints > 0)
+            if (data.Combatant is CharacterSheet && data.Combatant.HitPoints > 0)
                 heroAlive = true;
         }
         if (!heroAlive) {
@@ -468,7 +468,7 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
         }
     }
 
-    private void setAttackDefendSprites(Combattant attacker, Combattant target) {
+    private void setAttackDefendSprites(Combatant attacker, Combatant target) {
         combattants[attacker.Name].Image.sprite = combattants[attacker.Name].Sprites[1];
         combattants[target.Name].Image.sprite = combattants[target.Name].Sprites[2];
     }
@@ -495,9 +495,9 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
 
     private string getSelectSpellsText() {
         String text = "Select spell\n";
-        if (battle.CurrentCombattant.AvailableSpells.Length > 0) {
-            for (int i = 0; i < Math.Min(9, battle.CurrentCombattant.AvailableSpells[0].PreparedSpells.Length); i++) {
-                Spell spell = battle.CurrentCombattant.AvailableSpells[0].PreparedSpells[i];
+        if (battle.CurrentCombatant.AvailableSpells.Length > 0) {
+            for (int i = 0; i < Math.Min(9, battle.CurrentCombatant.AvailableSpells[0].PreparedSpells.Length); i++) {
+                Spell spell = battle.CurrentCombatant.AvailableSpells[0].PreparedSpells[i];
                 text += String.Format("{0}. {1}\n", i + 1, spell.Name);
             }
         }
@@ -508,7 +508,7 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
     private string getSelectSpellSlotText() {
         String text = String.Format("Select level to cast {0}\n", selectedSpell.Name);
         for (int i = (int)(selectedSpell.Level); i < 10; i++) {
-            int slots = battle.CurrentCombattant.AvailableSpells[0].SlotsCurrent[i];
+            int slots = battle.CurrentCombatant.AvailableSpells[0].SlotsCurrent[i];
             if (slots == 0) continue;
             text += String.Format("{0}. Level ({1} slots left)\n", i, slots);
         }
@@ -518,10 +518,10 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
 
     private string getSelectTargetsText() {
         string text = "Select target(s)\n";
-        Dictionary<string, CombattantData>.Enumerator enumerator = combattants.GetEnumerator();
+        Dictionary<string, CombatantData>.Enumerator enumerator = combattants.GetEnumerator();
         int i = 1;
         while (enumerator.MoveNext()) {
-            KeyValuePair<string, CombattantData> current = enumerator.Current;
+            KeyValuePair<string, CombatantData> current = enumerator.Current;
             string name = current.Key;
             Game.StringPad(ref name, 13);
             string selected = selectedTargets.Contains(current.Key) ? "*" : " ";
@@ -539,21 +539,21 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
 
     private void castSpell() {
         state = CombatState.SPELL_CAST;
-        List<Combattant> targets = new List<Combattant>();
+        List<Combatant> targets = new List<Combatant>();
         foreach (string name in selectedTargets) {
-            targets.Add(combattants[name].Combattant);
+            targets.Add(combattants[name].Combatant);
         }
-        if (!battle.SpellCastAction(selectedSpell, selectedSlot, battle.CurrentCombattant.AvailableSpells[0], targets.ToArray()))
-            log(String.Format("{0}'s spell failed (probably targets out of range)", battle.CurrentCombattant.Name));
+        if (!battle.SpellCastAction(selectedSpell, selectedSlot, battle.CurrentCombatant.AvailableSpells[0], targets.ToArray()))
+            log(String.Format("{0}'s spell failed (probably targets out of range)", battle.CurrentCombatant.Name));
         timer = 2.0f;
-        foreach (Combattant target in targets) {
-            setAttackDefendSprites(battle.CurrentCombattant, target);
+        foreach (Combatant target in targets) {
+            setAttackDefendSprites(battle.CurrentCombatant, target);
         }
     }
 
     private string getEquippableItems() {
         string text = "Select item(s) to equip from inventory\n";
-        CharacterInventory inventory = ((CharacterSheet)battle.CurrentCombattant).Inventory;
+        CharacterInventory inventory = ((CharacterSheet)battle.CurrentCombatant).Inventory;
         int i = 1;
         foreach (Item item in inventory.Bag) {
             string selected = selectedTargets.Contains(item.ToString()) ? "*" : " ";
@@ -566,7 +566,7 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
 
     private string getUsableItems() {
         string text = "Select item to use\n";
-        CharacterInventory inventory = ((CharacterSheet)battle.CurrentCombattant).Inventory;
+        CharacterInventory inventory = ((CharacterSheet)battle.CurrentCombatant).Inventory;
         int i = 1;
         foreach (Item item in inventory.Bag) {
             string selected = selectedTargets.Contains(item.ToString()) ? "*" : " ";
@@ -592,7 +592,7 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
     }
 
     private void equipSelectedItems() {
-        CharacterSheet hero = (CharacterSheet)battle.CurrentCombattant;
+        CharacterSheet hero = (CharacterSheet)battle.CurrentCombatant;
         foreach (string name in selectedTargets) {
             foreach (Item item in hero.Inventory.Bag) {
                 if (name == item.ToString()) {
@@ -604,15 +604,15 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
     }
 
     private void useSelectedItem() {
-        CharacterSheet hero = (CharacterSheet)battle.CurrentCombattant;
-        Combattant[] targets = new Combattant[selectedTargets.Count];
+        CharacterSheet hero = (CharacterSheet)battle.CurrentCombatant;
+        Combatant[] targets = new Combatant[selectedTargets.Count];
         for (int i = 0; i < selectedTargets.Count; i++) {
-            targets[i] = combattants[selectedTargets[i]].Combattant;
+            targets[i] = combattants[selectedTargets[i]].Combatant;
         }
-        hero.Use(selectedUsable, selectedCharges, targets);
+        hero.Use(selectedUsable, selectedCharges, battle, targets);
         timer = 2.0f;
-        foreach (Combattant target in targets) {
-            setAttackDefendSprites(battle.CurrentCombattant, target);
+        foreach (Combatant target in targets) {
+            setAttackDefendSprites(battle.CurrentCombatant, target);
         }
     }
 }

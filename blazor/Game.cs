@@ -108,13 +108,13 @@ namespace Libsrd5Blazor {
         }
     }
 
-    public struct CombattantData {
-        public Combattant Combattant;
+    public struct CombatantData {
+        public Combatant Combatant;
         public Slot Image;
         public string[] Sprites;
 
-        public CombattantData(Combattant combattant, Slot image, string[] sprites) {
-            Combattant = combattant;
+        public CombatantData(Combatant combattant, Slot image, string[] sprites) {
+            Combatant = combattant;
             Image = image;
             Sprites = sprites;
         }

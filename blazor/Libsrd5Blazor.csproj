@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Same libsrd5 build (0.1.15, netstandard2.0) the Unity and Godot projects use. -->
+    <!-- libsrd5 DLL built by CI from the version pinned in ../libsrd5.ref (same DLL in all examples). -->
     <Reference Include="libsrd5">
       <HintPath>lib/libsrd5.dll</HintPath>
     </Reference>

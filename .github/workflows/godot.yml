@@ -1,0 +1,28 @@
+name: Godot-Build
+
+on: [pull_request]
+jobs:
+  build:
+    name: build-godot
+    runs-on: ubuntu-latest
+    env:
+      GODOT_VERSION: 4.6.2
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      # Compiles the C# scripts against GodotSharp from NuGet (no editor needed)
+      - name: Build C# project
+        run: dotnet build godot/Libsrd5Examples.csproj
+
+      # Imports assets and loads the project headless to catch broken scenes/resources
+      - name: Import project with Godot
+        run: |
+          curl -sSL -o godot.zip "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_mono_linux_x86_64.zip"
+          unzip -q godot.zip
+          GODOT=$(find . -maxdepth 2 -name "Godot_v*_mono_linux.x86_64" | head -1)
+          "$GODOT" --headless --path godot --import

@@ -26,8 +26,8 @@ See [blazor/README.md](blazor/README.md).
 
 Every pull request builds the Godot (Windows, Linux, Android) and Blazor versions; the builds are attached to the
 workflow run as artifacts. When changes are merged into `main`, the same builds are published as a
-[GitHub release](https://github.com/kupka/libsrd5-examples/releases) and the Blazor live demo on GitHub Pages
-(`docs/blazor`) is updated.
+[GitHub release](https://github.com/kupka/libsrd5-examples/releases) and the GitHub Pages site
+(`docs/` plus the Blazor live demo) is deployed.
 
 # Disclaimer
 

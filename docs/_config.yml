@@ -1,5 +1,1 @@
 theme: jekyll-theme-minimal
-# Jekyll skips folders starting with "_"; the Blazor demo needs its _framework folder
-include:
-  - _framework
-  - _content

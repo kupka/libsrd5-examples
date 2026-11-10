@@ -320,11 +320,39 @@ Select a category on the left, then an entry to see its details here.";
         text.AppendFormat("Duration:     {0}\n", pretty(spell.Duration));
         if (spell.AreaOfEffect > 0) text.AppendFormat("Area:         {0} ft\n", spell.AreaOfEffect);
         if (spell.MaximumTargets > 0) text.AppendFormat("Targets:      up to {0}\n", spell.MaximumTargets);
-        text.AppendFormat("\n{0}\n", spell.ID.Description());
+        text.AppendFormat("\n{0}\n", truncate(spell.ID.Description()));
         return text.ToString();
     }
 
     // ---------- Helpers ----------
+
+    // The main text area fits about 57 characters per line; descriptions are cut after 17 lines
+    private const int DESCRIPTION_LINES = 17;
+    private const int LINE_WIDTH = 56;
+
+    /// <summary>Word-wraps the text like the main text area and cuts it after DESCRIPTION_LINES lines.</summary>
+    private static string truncate(string text) {
+        if (text == null) return "";
+        List<string> lines = new List<string>();
+        foreach (string paragraph in text.Replace("\r", "").Split('\n')) {
+            string line = "";
+            foreach (string word in paragraph.Split(' ')) {
+                if (line.Length > 0 && line.Length + 1 + word.Length > LINE_WIDTH) {
+                    lines.Add(line);
+                    line = word;
+                } else {
+                    line = line.Length == 0 ? word : line + " " + word;
+                }
+            }
+            lines.Add(line);
+        }
+        if (lines.Count <= DESCRIPTION_LINES) return text;
+        lines = lines.GetRange(0, DESCRIPTION_LINES);
+        string last = lines[DESCRIPTION_LINES - 1];
+        if (last.Length > LINE_WIDTH - 3) last = last.Substring(0, LINE_WIDTH - 3);
+        lines[DESCRIPTION_LINES - 1] = last.TrimEnd() + "...";
+        return string.Join("\n", lines.ToArray());
+    }
 
     /// <summary>All public static properties and fields of the given type (e.g. Weapons.Club).</summary>
     private static List<T> StaticMembers<T>(Type container) where T : class {

@@ -122,6 +122,39 @@ jobs:
           path: publish/blazor/wwwroot
           include-hidden-files: true
 
+  # Updates the Blazor live demo (docs/blazor, served by GitHub Pages) when changes land on main
+  pages:
+    name: publish-pages
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [blazor]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: blazor-web
+          path: blazor-web
+
+      - name: Commit Blazor build to docs/blazor
+        run: |
+          rm -rf docs/blazor
+          mkdir -p docs/blazor
+          cp -r blazor-web/. docs/blazor/
+          rm -f docs/blazor/.nojekyll   # docs/ is built by Jekyll; _config.yml includes _framework instead
+          git add -A docs/blazor
+          if git diff --cached --quiet; then
+            echo "Blazor demo unchanged"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Update Blazor live demo [skip ci]"
+          git push origin HEAD:main
+
   # Publishes all builds as a GitHub release when changes land on main
   release:
     name: release

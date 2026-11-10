@@ -18,13 +18,16 @@ See [godot/README.md](godot/README.md).
 # Blazor
 
 Blazor WebAssembly port of the Unity3D demo in the `blazor` folder. Runs in the browser as a static web app.
+
+Live Demo at (https://kupka.github.io/libsrd5-examples/blazor/)
 See [blazor/README.md](blazor/README.md).
 
 # Builds
 
 Every pull request builds the Godot (Windows, Linux, Android) and Blazor versions; the builds are attached to the
 workflow run as artifacts. When changes are merged into `main`, the same builds are published as a
-[GitHub release](https://github.com/kupka/libsrd5-examples/releases).
+[GitHub release](https://github.com/kupka/libsrd5-examples/releases) and the Blazor live demo on GitHub Pages
+(`docs/blazor`) is updated.
 
 # Disclaimer
 

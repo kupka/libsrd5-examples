@@ -5,6 +5,9 @@
     <Nullable>disable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
     <RootNamespace>Libsrd5Blazor</RootNamespace>
+    <!-- No precompressed .br/.gz copies: GitHub Pages can't serve them, and they double the size of docs/blazor -->
+    <CompressionEnabled>false</CompressionEnabled>
+    <BlazorEnableCompression>false</BlazorEnableCompression>
   </PropertyGroup>
 
   <ItemGroup>

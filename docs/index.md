@@ -8,4 +8,10 @@ https://kupka.github.io/libsrd5-examples/unity/index.html
 
 # Blazor / WASM
 
-Not yet available.
+https://kupka.github.io/libsrd5-examples/blazor/
+
+# Godot
+
+Windows, Linux and Android builds: https://github.com/kupka/libsrd5-examples/releases
+
+The Godot and Blazor versions have been created using Claude Code and have not been thoroughly reviewed.

@@ -66,10 +66,13 @@ Select a category on the left, then an entry to see its details here.";
 
     public string MenuText { get; private set; }
     public string MainText { get; private set; }
+    /// <summary>Icon of the current category: library, items, spells, weapons, armor, consumables, druid, wizard.</summary>
+    public string Icon { get; private set; }
 
     public Library() {
         MenuText = ROOT_TEXT;
         MainText = INTRO_TEXT;
+        Icon = "library";
     }
 
     /// <summary>Handles a number key. Returns false when the player leaves the library.</summary>
@@ -82,14 +85,14 @@ Select a category on the left, then an entry to see its details here.";
                 break;
             case Menu.ITEMS:
                 if (digit == 0) showMenu(Menu.ROOT, ROOT_TEXT);
-                else if (digit == 1) showList("Weapons", Menu.ITEMS, weaponEntries());
-                else if (digit == 2) showList("Armor", Menu.ITEMS, armorEntries());
-                else if (digit == 3) showList("Consumables", Menu.ITEMS, consumableEntries());
+                else if (digit == 1) showList("Weapons", "weapons", Menu.ITEMS, weaponEntries());
+                else if (digit == 2) showList("Armor", "armor", Menu.ITEMS, armorEntries());
+                else if (digit == 3) showList("Consumables", "consumables", Menu.ITEMS, consumableEntries());
                 break;
             case Menu.SPELLS:
                 if (digit == 0) showMenu(Menu.ROOT, ROOT_TEXT);
-                else if (digit == 1) showList("Druid Spells", Menu.SPELLS, spellEntries(DRUID_SPELLS));
-                else if (digit == 2) showList("Wizard Spells", Menu.SPELLS, spellEntries(WIZARD_SPELLS));
+                else if (digit == 1) showList("Druid Spells", "druid", Menu.SPELLS, spellEntries(DRUID_SPELLS));
+                else if (digit == 2) showList("Wizard Spells", "wizard", Menu.SPELLS, spellEntries(WIZARD_SPELLS));
                 break;
             case Menu.LIST:
                 if (digit == 0) {
@@ -108,12 +111,14 @@ Select a category on the left, then an entry to see its details here.";
 
     private void showMenu(Menu target, string text) {
         menu = target;
+        Icon = target == Menu.ITEMS ? "items" : target == Menu.SPELLS ? "spells" : "library";
         MenuText = text;
         MainText = INTRO_TEXT;
     }
 
-    private void showList(string title, Menu parent, List<Entry> list) {
+    private void showList(string title, string icon, Menu parent, List<Entry> list) {
         menu = Menu.LIST;
+        Icon = icon;
         listParent = parent;
         listTitle = title;
         entries = list;

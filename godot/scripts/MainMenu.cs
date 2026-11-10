@@ -17,6 +17,9 @@ public partial class MainMenu : Control, IKeyInputReceiver {
 
     private MainMenuState state = MainMenuState.DEFAULT;
     private Library library;
+    // Main menu art, replaced by a category icon while the library is open
+    private Control dwarf, ogre;
+    private TextureRect libraryIcon;
 
     private const string DEFAULT_TEXT =
 @"Remember to equip ranged weapons to characters in the back and prepare spells for casters.
@@ -55,6 +58,9 @@ public partial class MainMenu : Control, IKeyInputReceiver {
     public override void _Ready() {
         MenuText = GetNode<Label>("MenuText");
         MainText = GetNode<Label>("MainText");
+        dwarf = GetNode<Control>("Dwarf");
+        ogre = GetNode<Control>("Ogre");
+        createLibraryIcon();
         GetNode<ConditionIconBehavior>("IconPulse").Icons.Add(GetNode<Control>("Logo"));
 
         MenuText.Text = DEFAULT_TEXT;
@@ -93,6 +99,7 @@ public partial class MainMenu : Control, IKeyInputReceiver {
                 state = MainMenuState.LIBRARY;
                 MenuText.Text = library.MenuText;
                 MainText.Text = library.MainText;
+                showLibraryIcon(true);
             }
         } else if (state == MainMenuState.DELETE_CHARACTER) {
             if (code > Key.Key0) {
@@ -158,13 +165,39 @@ public partial class MainMenu : Control, IKeyInputReceiver {
             if (library.HandleKey(Game.Digit(code))) {
                 MenuText.Text = library.MenuText;
                 MainText.Text = library.MainText;
+                showLibraryIcon(true);
             } else {
+                showLibraryIcon(false);
                 library = null;
                 state = MainMenuState.DEFAULT;
                 MenuText.Text = DEFAULT_TEXT;
                 updateCharacters();
             }
         }
+    }
+
+    private void createLibraryIcon() {
+        libraryIcon = new TextureRect();
+        libraryIcon.Name = "LibraryIcon";
+        libraryIcon.ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize;
+        libraryIcon.StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered;
+        libraryIcon.TextureFilter = TextureFilterEnum.Nearest;
+        libraryIcon.MouseFilter = MouseFilterEnum.Ignore;
+        libraryIcon.Visible = false;
+        AddChild(libraryIcon);
+        // centre (-322, 210), 160x160 in the Unity layout (y up)
+        libraryIcon.SetAnchorsPreset(LayoutPreset.Center);
+        libraryIcon.OffsetLeft = -402;
+        libraryIcon.OffsetRight = -242;
+        libraryIcon.OffsetTop = -290;
+        libraryIcon.OffsetBottom = -130;
+    }
+
+    private void showLibraryIcon(bool visible) {
+        dwarf.Visible = !visible;
+        ogre.Visible = !visible;
+        libraryIcon.Visible = visible;
+        if (visible) libraryIcon.Texture = GD.Load<Texture2D>("res://assets/sprites/library/library_" + library.Icon + ".png");
     }
 
     private void updateCharacters() {

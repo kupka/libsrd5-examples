@@ -3,6 +3,8 @@
 A very simple example of how to integrate [libsrd5](https://github.com/kupka/libsrd5) in a Godot 4 (.NET / C#) project.
 It is a port of the Unity3D example in `../unity` with the same four screens and game flow.
 
+> **Disclaimer:** this version has been created using Claude Code and has not been thoroughly reviewed.
+
 ## Requirements
 
 * Godot 4.6+ **.NET edition** (the standard build has no C# support)
@@ -37,10 +39,14 @@ libsrd5 is referenced as the same prebuilt DLL the Unity project ships (`lib/lib
 Newer libsrd5 versions changed parts of the API (e.g. `Combattant` → `Combatant`, `Item.IsThisA`), so
 upgrading needs small code changes.
 
-## Web export
+## Builds
 
-Godot 4 cannot export C# projects to the web yet (support is being worked on upstream). Desktop and mobile
-exports work. Until then, the WebGL live demo stays on the Unity build.
+CI exports Windows and Linux (x86_64) release builds and a debug-signed Android APK (arm64). They are attached to
+every pull request run and published as a GitHub release when merged into `main`. The Android APK targets .NET 9
+(Godot's Android export templates require it); desktop builds use .NET 8.
+
+Godot 4 cannot export C# projects to the web yet (support is being worked on upstream); use the Blazor version
+(`../blazor`) or the Unity WebGL build for the browser.
 
 ## License
 

@@ -1,0 +1,19 @@
+@inherits ScreenBase
+
+<img class="sprite" src="assets/sprites/wesnoth/desert.png" style="@Layout.Rect(0, 0, 1050, 700)" />
+<NumButtons OnKey="KeyPressHandler" />
+@foreach (Slot slot in AllSlots) {
+    if (!slot.Visible) continue;
+    <div class="slot" style="@Layout.Rect(slot.X, slot.Y, slot.W, slot.H)">
+        <img class="sprite unit" src="@slot.Sprite" />
+        @if (slot.Icons.Contains(ConditionType.UNCONSCIOUS)) {
+            @* Unity: icon centre 20px right / 20px up of the unit centre, 64x64 *@
+            <img class="sprite pulse-fast" src="assets/sprites/unconscious.png"
+                 style="@IconStyle(slot)" />
+        }
+    </div>
+}
+<div class="panel" style="@Layout.Rect(-325, -246, 380, 190)"></div>
+<div class="panel" style="@Layout.Rect(200, -246, 630, 190)"></div>
+<div class="text bottom" style="@(Layout.Rect(-325, -246, 370.832, 185) + "color:#000;")">@MenuText</div>
+<div class="text bottom right" style="@(Layout.Rect(200, -246, 620, 185) + "color:#070707;font-size:14px;")">@CombatLog</div>

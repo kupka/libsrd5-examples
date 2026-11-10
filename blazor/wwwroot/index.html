@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>libsrd5 Blazor Example</title>
+    <!-- Relative base: the app works from any folder (GitHub Pages, a zip on a web server, ...) -->
+    <base href="./" />
+    <link rel="stylesheet" href="css/app.css" />
+</head>
+<body>
+    <div id="app"><div class="loading">Loading...</div></div>
+
+    <script>
+        // Scale the fixed 1280x720 stage to the window, like Godot's canvas_items stretch mode.
+        function fitStage() {
+            const scale = Math.min(window.innerWidth / 1280, window.innerHeight / 720);
+            document.documentElement.style.setProperty('--scale', scale);
+        }
+        window.addEventListener('resize', fitStage);
+        fitStage();
+
+        // Number keys 0-9 anywhere on the page (except while typing into a text field).
+        window.libsrd5 = {
+            registerKeys: function (dotnetRef) {
+                document.addEventListener('keyup', function (e) {
+                    const tag = e.target && e.target.tagName;
+                    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+                    if (/^[0-9]$/.test(e.key)) dotnetRef.invokeMethodAsync('OnKey', parseInt(e.key, 10));
+                });
+            }
+        };
+    </script>
+    <script src="_framework/blazor.webassembly.js"></script>
+</body>
+</html>

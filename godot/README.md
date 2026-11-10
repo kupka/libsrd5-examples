@@ -6,7 +6,7 @@ It is a port of the Unity3D example in `../unity` with the same four screens and
 ## Requirements
 
 * Godot 4.6+ **.NET edition** (the standard build has no C# support)
-* .NET SDK 8.0 or newer
+* .NET SDK 8.0 or newer (.NET 9 for Android exports)
 
 ## Running
 

@@ -1,0 +1,18 @@
+@inherits ScreenBase
+
+<img class="sprite" src="assets/UI-Background.png" style="@Layout.Rect(0, 0, 1050, 700)" />
+<div class="text bottom" style="@Layout.Rect(-322.9279, -168.4, 370.832, 302.93)">@MenuText</div>
+<div class="text" style="@Layout.Rect(199, 0.1397, 620, 640)">@CharacterText</div>
+<NumButtons OnKey="KeyPressHandler" />
+<img class="sprite" src="@CharacterImage" style="@Layout.Rect(-340, 177, 192, 192)" />
+
+@if (nameDialogVisible) {
+    <div class="darken">
+        <input class="name-input" style="@Layout.Rect(7, 0, 700, 70)" maxlength="20" autocomplete="off"
+               placeholder="@namePlaceholder" @ref="nameInputElement"
+               @bind="nameValue" @bind:event="oninput" @onkeyup="NameKeyUp" />
+        <img class="dice" src="assets/sprites/d6.png" style="@Layout.Rect(7 + 409, 0, 80, 80)" @onclick="RollName" />
+        <button class="ok" style="@Layout.Rect(7 + 2, -97, 200, 80)" @onmousedown:preventDefault="true"
+                @onclick="() => KeyPressHandler(KeyCode.Return)">Accept</button>
+    </div>
+}

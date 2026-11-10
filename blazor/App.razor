@@ -1,0 +1,49 @@
+@implements IDisposable
+@inject IJSRuntime JS
+
+<div id="stage">
+    @switch (Game.CurrentScene) {
+        case "CharacterCreation":
+            <CharacterCreation />
+            break;
+        case "CharacterPrepare":
+            <CharacterPrepare />
+            break;
+        case "Combat":
+            <Combat />
+            break;
+        default:
+            <MainMenu />
+            break;
+    }
+</div>
+
+@code {
+    private DotNetObjectReference<App> self;
+
+    protected override void OnInitialized() {
+        Game.SceneChanged += OnSceneChanged;
+    }
+
+    private void OnSceneChanged() {
+        StateHasChanged();
+    }
+
+    protected override async System.Threading.Tasks.Task OnAfterRenderAsync(bool firstRender) {
+        if (firstRender) {
+            self = DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("libsrd5.registerKeys", self);
+        }
+    }
+
+    /// <summary>Called from index.html for the number keys 0-9 (Unity: Input.GetKeyUp).</summary>
+    [JSInvokable]
+    public void OnKey(int digit) {
+        Game.KeyReceiver?.KeyPressHandler(KeyCode.Alpha0 + digit);
+    }
+
+    public void Dispose() {
+        Game.SceneChanged -= OnSceneChanged;
+        self?.Dispose();
+    }
+}

@@ -1,0 +1,196 @@
+name: Build
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  godot:
+    name: build-godot
+    runs-on: ubuntu-latest
+    env:
+      GODOT_VERSION: 4.6.2
+      GODOT: ${{ github.workspace }}/godot-bin/Godot_v4.6.2-stable_mono_linux_x86_64/Godot_v4.6.2-stable_mono_linux.x86_64
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      # Compiles the C# scripts against GodotSharp from NuGet (no editor needed)
+      - name: Build C# project
+        run: dotnet build godot/Libsrd5Examples.csproj
+
+      # Godot editor and export templates (~1 GB, cached between runs)
+      - uses: actions/cache@v4
+        id: godot-cache
+        with:
+          path: |
+            godot-bin
+            ~/.local/share/godot/export_templates
+          key: godot-${{ env.GODOT_VERSION }}-mono
+
+      - name: Download Godot and export templates
+        if: steps.godot-cache.outputs.cache-hit != 'true'
+        run: |
+          BASE="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable"
+          curl -sSL -o godot.zip "$BASE/Godot_v${GODOT_VERSION}-stable_mono_linux_x86_64.zip"
+          unzip -q godot.zip -d godot-bin
+          curl -sSL -o templates.tpz "$BASE/Godot_v${GODOT_VERSION}-stable_mono_export_templates.tpz"
+          unzip -q templates.tpz
+          mkdir -p ~/.local/share/godot/export_templates
+          mv templates ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable.mono
+          rm godot.zip templates.tpz
+
+      - name: Configure Android export
+        run: |
+          keytool -genkeypair -v -keystore ~/debug.keystore -storepass android -alias androiddebugkey \
+            -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+          mkdir -p ~/.config/godot
+          cat > ~/.config/godot/editor_settings-${GODOT_VERSION%.*}.tres <<EOT
+          [gd_resource type="EditorSettings" format=3]
+
+          [resource]
+          export/android/android_sdk_path = "$ANDROID_HOME"
+          export/android/java_sdk_path = "$JAVA_HOME"
+          export/android/debug_keystore = "$HOME/debug.keystore"
+          export/android/debug_keystore_user = "androiddebugkey"
+          export/android/debug_keystore_pass = "android"
+          EOT
+          sed -i 's/^          //' ~/.config/godot/editor_settings-*.tres
+
+      # Imports assets headless; catches broken scenes/resources
+      - name: Import project
+        run: '"$GODOT" --headless --path godot --import'
+
+      - name: Export Windows, Linux and Android
+        run: |
+          mkdir -p build/windows build/linux build/android
+          "$GODOT" --headless --path godot --export-release "Windows" ../build/windows/libsrd5-examples.exe
+          "$GODOT" --headless --path godot --export-release "Linux" ../build/linux/libsrd5-examples.x86_64
+          # Debug-signed APK; a release APK needs your own keystore
+          "$GODOT" --headless --path godot --export-debug "Android" ../build/android/libsrd5-examples.apk
+          ls -lR build
+          test -f build/windows/libsrd5-examples.exe
+          test -f build/linux/libsrd5-examples.x86_64
+          test -f build/android/libsrd5-examples.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: godot-windows
+          path: build/windows
+      - uses: actions/upload-artifact@v4
+        with:
+          name: godot-linux
+          path: build/linux
+      - uses: actions/upload-artifact@v4
+        with:
+          name: godot-android
+          path: build/android
+
+  blazor:
+    name: build-blazor
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Publish Blazor WebAssembly app
+        run: |
+          dotnet publish blazor/Libsrd5Blazor.csproj -c Release -o publish/blazor
+          # GitHub Pages: serve the _framework folder (no Jekyll processing)
+          touch publish/blazor/wwwroot/.nojekyll
+          ls publish/blazor/wwwroot
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: blazor-web
+          path: publish/blazor/wwwroot
+          include-hidden-files: true
+
+  # Updates the Blazor live demo (docs/blazor, served by GitHub Pages) when changes land on main
+  pages:
+    name: publish-pages
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [blazor]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: blazor-web
+          path: blazor-web
+
+      - name: Commit Blazor build to docs/blazor
+        run: |
+          rm -rf docs/blazor
+          mkdir -p docs/blazor
+          cp -r blazor-web/. docs/blazor/
+          rm -f docs/blazor/.nojekyll   # docs/ is built by Jekyll; _config.yml includes _framework instead
+          git add -A docs/blazor
+          if git diff --cached --quiet; then
+            echo "Blazor demo unchanged"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Update Blazor live demo [skip ci]"
+          git push origin HEAD:main
+
+  # Publishes all builds as a GitHub release when changes land on main
+  release:
+    name: release
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [godot, blazor]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Package release assets
+        run: |
+          mkdir dist
+          chmod +x artifacts/godot-linux/libsrd5-examples.x86_64
+          (cd artifacts/godot-windows && zip -qr ../../dist/libsrd5-examples-godot-windows.zip .)
+          (cd artifacts/godot-linux && zip -qr ../../dist/libsrd5-examples-godot-linux.zip .)
+          cp artifacts/godot-android/libsrd5-examples.apk dist/libsrd5-examples-godot-android.apk
+          (cd artifacts/blazor-web && zip -qr ../../dist/libsrd5-examples-blazor-web.zip .)
+          ls -l dist
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          TAG="build-${{ github.run_number }}"
+          gh release create "$TAG" dist/* \
+            --target "${{ github.sha }}" \
+            --title "Build ${{ github.run_number }} ($(echo ${{ github.sha }} | cut -c1-7))" \
+            --notes "Automated build of ${{ github.sha }}.
+
+          - **Godot (Windows / Linux):** unzip and run the executable; keep the data folder next to it.
+          - **Godot (Android):** debug-signed APK for sideloading (64-bit ARM).
+          - **Blazor:** static web app; serve the unzipped folder from any web server or GitHub Pages.
+
+          These versions were created with Claude Code and have not been thoroughly reviewed."

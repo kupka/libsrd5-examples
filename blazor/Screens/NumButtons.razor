@@ -1,0 +1,13 @@
+@* Port of NumButtonBehavior: the on-screen buttons 1-5 (left) and 6-0 (right). *@
+@for (int i = 0; i < 10; i++) {
+    int digit = (i + 1) % 10;
+    double x = i < 5 ? -580 : 580;
+    double y = 300 - (i % 5) * 150;
+    <button class="num" style="@Layout.Rect(x, y, 80, 80)"
+            @onmousedown:preventDefault="true"
+            @onclick="() => OnKey.InvokeAsync(KeyCode.Alpha0 + digit)">@digit</button>
+}
+
+@code {
+    [Parameter] public EventCallback<KeyCode> OnKey { get; set; }
+}

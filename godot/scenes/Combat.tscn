@@ -1,0 +1,461 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/Combat.cs" id="1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/wesnoth/desert.png" id="2"]
+[ext_resource type="Script" path="res://scripts/NumButtons.cs" id="3"]
+[ext_resource type="Texture2D" path="res://assets/sprites/0.5-white.png" id="4"]
+[ext_resource type="Texture2D" path="res://assets/sprites/unconscious.png" id="5"]
+[ext_resource type="Script" path="res://scripts/ConditionIconBehavior.cs" id="6"]
+
+[node name="Combat" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -525.0
+offset_top = -350.0
+offset_right = 525.0
+offset_bottom = 350.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2")
+expand_mode = 1
+
+[node name="NumButtons" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 0.0
+offset_top = -0.0
+offset_right = 0.0
+offset_bottom = -0.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("3")
+
+[node name="Button1" type="Button" parent="NumButtons"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -620.0
+offset_top = -340.0
+offset_right = -540.0
+offset_bottom = -260.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 0
+text = "1"
+
+[node name="Button2" type="Button" parent="NumButtons"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -620.0
+offset_top = -190.0
+offset_right = -540.0
+offset_bottom = -110.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 0
+text = "2"
+
+[node name="Button3" type="Button" parent="NumButtons"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -620.0
+offset_top = -40.0
+offset_right = -540.0
+offset_bottom = 40.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 0
+text = "3"
+
+[node name="Button4" type="Button" parent="NumButtons"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -620.0
+offset_top = 110.0
+offset_right = -540.0
+offset_bottom = 190.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 0
+text = "4"
+
+[node name="Button5" type="Button" parent="NumButtons"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -620.0
+offset_top = 260.0
+offset_right = -540.0
+offset_bottom = 340.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 0
+text = "5"
+
+[node name="Button6" type="Button" parent="NumButtons"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 540.0
+offset_top = -340.0
+offset_right = 620.0
+offset_bottom = -260.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 0
+text = "6"
+
+[node name="Button7" type="Button" parent="NumButtons"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 540.0
+offset_top = -190.0
+offset_right = 620.0
+offset_bottom = -110.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 0
+text = "7"
+
+[node name="Button8" type="Button" parent="NumButtons"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 540.0
+offset_top = -40.0
+offset_right = 620.0
+offset_bottom = 40.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 0
+text = "8"
+
+[node name="Button9" type="Button" parent="NumButtons"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 540.0
+offset_top = 110.0
+offset_right = 620.0
+offset_bottom = 190.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 0
+text = "9"
+
+[node name="Button0" type="Button" parent="NumButtons"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 540.0
+offset_top = 260.0
+offset_right = 620.0
+offset_bottom = 340.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 0
+text = "0"
+
+[node name="CharFront1" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -329.0
+offset_top = -218.0
+offset_right = -137.0
+offset_bottom = -26.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+visible = false
+expand_mode = 1
+
+[node name="CharFront2" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -299.0
+offset_top = -39.0
+offset_right = -107.0
+offset_bottom = 153.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+visible = false
+expand_mode = 1
+
+[node name="CharBack1" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -522.0
+offset_top = -223.0
+offset_right = -330.0
+offset_bottom = -31.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+visible = false
+expand_mode = 1
+
+[node name="CharBack2" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -497.0
+offset_top = -49.0
+offset_right = -305.0
+offset_bottom = 143.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+visible = false
+expand_mode = 1
+
+[node name="Medium1" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 170.0
+offset_top = -266.0
+offset_right = 362.0
+offset_bottom = -74.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+visible = false
+expand_mode = 1
+
+[node name="Medium2" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 104.0
+offset_top = -176.0
+offset_right = 296.0
+offset_bottom = 16.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+visible = false
+expand_mode = 1
+
+[node name="Medium3" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 174.0
+offset_top = -52.0
+offset_right = 366.0
+offset_bottom = 140.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+visible = false
+expand_mode = 1
+
+[node name="Large1" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 56.0
+offset_top = -287.0
+offset_right = 344.0
+offset_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+visible = false
+expand_mode = 1
+
+[node name="Large2" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 129.0
+offset_top = -118.0
+offset_right = 417.0
+offset_bottom = 170.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+visible = false
+expand_mode = 1
+
+[node name="MenuPanel" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -515.0
+offset_top = 151.0
+offset_right = -135.0
+offset_bottom = 341.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("4")
+expand_mode = 1
+stretch_mode = 1
+
+[node name="LogPanel" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -115.0
+offset_top = 151.0
+offset_right = 515.0
+offset_bottom = 341.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("4")
+expand_mode = 1
+stretch_mode = 1
+
+[node name="MenuText" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -510.416
+offset_top = 153.5
+offset_right = -139.584
+offset_bottom = 338.5
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = ""
+horizontal_alignment = 0
+vertical_alignment = 2
+autowrap_mode = 3
+
+[node name="CombatLog" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -110.0
+offset_top = 153.5
+offset_right = 510.0
+offset_bottom = 338.5
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.028301895, 0.028301895, 0.028301895, 1)
+theme_override_font_sizes/font_size = 14
+text = ""
+horizontal_alignment = 2
+vertical_alignment = 2
+autowrap_mode = 3
+
+[node name="Unconscious" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -369.8
+offset_top = 50.3
+offset_right = -305.8
+offset_bottom = 114.3
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+visible = false
+texture = ExtResource("5")
+expand_mode = 1
+
+[node name="IconPulse" type="Node" parent="."]
+script = ExtResource("6")
+Slowness = 0.5
+Factor = 0.8

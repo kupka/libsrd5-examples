@@ -1,0 +1,8 @@
+@inherits ScreenBase
+
+<img class="sprite" src="assets/UI-Background.png" style="@Layout.Rect(0, 0, 1050, 700)" />
+<div class="text bottom" style="@Layout.Rect(-322.9279, -168.4, 370.832, 302.93)">@MenuText</div>
+<div class="text" style="@Layout.Rect(199, 0.1397, 620, 640)">@Rich(CharacterText)</div>
+<NumButtons OnKey="KeyPressHandler" />
+<img class="sprite" src="@CharacterImage" style="@Layout.Rect(-321, 177, 192, 192)" />
+<div class="text bottom center" style="@(Layout.Rect(-322.9279, 68, 370.832, 50) + "font-size:30px;")">@CharacterName</div>

@@ -316,6 +316,25 @@ public partial class Combat {
                 log(String.Format("{0} used {1}", nameOf(equipment.Hero), equipment.Item.Name));
             else if (equipment.Event == GlobalEvents.EquipmentChanged.Events.DESTROYED)
                 log(String.Format("{0}'s {1} was destroyed", nameOf(equipment.Hero), equipment.Item.Name));
+            else if (equipment.Event == GlobalEvents.EquipmentChanged.Events.PUT_IN_BAG)
+                log(String.Format("{0} put {1} in the bag", nameOf(equipment.Hero), equipment.Item.Name));
+            else if (equipment.Event == GlobalEvents.EquipmentChanged.Events.REMOVED_FROM_BAG)
+                log(String.Format("{0} took {1} out of the bag", nameOf(equipment.Hero), equipment.Item.Name));
+        } else if (GlobalEvents.EventTypes.CAST_SPELL.Equals(sender)) {
+            GlobalEvents.SpellCast cast = (GlobalEvents.SpellCast)args;
+            log(String.Format("{0} casts {1}", nameOf(cast.Caster), cast.Spell.Name()));
+        } else if (GlobalEvents.EventTypes.EFFECT_ACTIVATED.Equals(sender)) {
+            // Raised for activated effects and for activated feats
+            if (args is GlobalEvents.FeatActivated) {
+                GlobalEvents.FeatActivated feat = (GlobalEvents.FeatActivated)args;
+                log(String.Format("{0} uses {1}", nameOf(feat.Source), feat.Feat.Name()));
+            } else if (args is GlobalEvents.EffectActivated) {
+                GlobalEvents.EffectActivated effect = (GlobalEvents.EffectActivated)args;
+                log(String.Format("{0}: {1} activated", nameOf(effect.Source), effect.Effect.Name()));
+            }
+        } else if (GlobalEvents.EventTypes.DEATH.Equals(sender)) {
+            GlobalEvents.Death death = (GlobalEvents.Death)args;
+            log(String.Format("{0} dies", nameOf(death.Victim)));
         } else {
             Console.WriteLine("Unexpected Event.");
         }

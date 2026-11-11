@@ -151,12 +151,12 @@ jobs:
           path: publish/blazor/wwwroot
           include-hidden-files: true
 
-  # Deploys the GitHub Pages site (docs/ with the Unity demo + the Blazor demo) when changes land on main.
+  # Deploys the GitHub Pages site (docs/ + the Unity and Blazor demos built above) when changes land on main.
   # Requires Settings -> Pages -> Source: "GitHub Actions".
   pages:
     name: publish-pages
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [blazor]
+    needs: [unity, blazor]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -186,12 +186,18 @@ jobs:
           name: blazor-web
           path: blazor-web
 
-      # Added after Jekyll so the _framework folder is kept as is
-      - name: Add Blazor demo under /blazor
+      - uses: actions/download-artifact@v4
+        with:
+          name: unity-webgl
+          path: unity-webgl
+
+      # Added after Jekyll so the files are kept as is (e.g. Blazor's _framework folder)
+      - name: Add Unity demo under /unity and Blazor demo under /blazor
         run: |
-          sudo mkdir -p _site/blazor
+          sudo mkdir -p _site/unity _site/blazor
+          sudo cp -r unity-webgl/. _site/unity/
           sudo cp -r blazor-web/. _site/blazor/
-          ls _site _site/blazor
+          ls _site _site/unity _site/blazor
 
       - uses: actions/upload-pages-artifact@v3
         with:

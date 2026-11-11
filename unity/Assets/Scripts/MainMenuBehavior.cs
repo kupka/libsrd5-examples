@@ -11,11 +11,16 @@ public class MainMenuBehavior : MonoBehaviour, KeyInputReceiver {
         ARRANGE_CHARACTERS_1,
         ARRANGE_CHARACTERS_2,
         RETURN_ONLY,
-        BATTLE
+        BATTLE,
+        LIBRARY
     }
     public Text MenuText, MainText;
 
     private MainMenuState state = MainMenuState.DEFAULT;
+    private Library library;
+    // Main menu art (and logo), replaced by a category icon while the library is open
+    private GameObject dwarf, ogre, logo;
+    private Image libraryIcon;
 
     private const string DEFAULT_TEXT =
 @"Remember to equip ranged weapons to characters in the back and prepare spells for casters.
@@ -24,7 +29,8 @@ public class MainMenuBehavior : MonoBehaviour, KeyInputReceiver {
 2. Delete a Character
 3. Equip / Prepare a Chracter
 4. Arrange Characters
-5. Start a battle";
+5. Start a battle
+6. Library";
 
     private const string DELETE_TEXT =
 @"Input number of character to delete or 0 to cancel.";
@@ -51,6 +57,10 @@ public class MainMenuBehavior : MonoBehaviour, KeyInputReceiver {
     private const string ARRANGE_CHARACTERS_2 = "Set the second character for the front line. Characters in the back can only attack with ranged attacks.";
 
     void Start() {
+        dwarf = GameObject.Find("Dwarf");
+        ogre = GameObject.Find("Ogre");
+        logo = GameObject.Find("Logo");
+        createLibraryIcon();
         MenuText.text = DEFAULT_TEXT;
         updateCharacters();
         srd5.Random.State = (uint)DateTime.Now.ToFileTime();
@@ -82,6 +92,12 @@ public class MainMenuBehavior : MonoBehaviour, KeyInputReceiver {
             } else if (code == KeyCode.Alpha5) {
                 MenuText.text = BATTLE_TEXT;
                 state = MainMenuState.BATTLE;
+            } else if (code == KeyCode.Alpha6) {
+                library = new Library();
+                state = MainMenuState.LIBRARY;
+                MenuText.text = library.MenuText;
+                MainText.text = library.MainText;
+                showLibraryIcon(true);
             }
         } else if (state == MainMenuState.DELETE_CHARACTER) {
             if (code > KeyCode.Alpha0) {
@@ -155,11 +171,44 @@ public class MainMenuBehavior : MonoBehaviour, KeyInputReceiver {
                 Game.Scene = Game.CombatScene.OGRES;
                 SceneManager.LoadScene("Combat");
             }
+        } else if (state == MainMenuState.LIBRARY) {
+            if (library.HandleKey(code - KeyCode.Alpha0)) {
+                MenuText.text = library.MenuText;
+                MainText.text = library.MainText;
+                showLibraryIcon(true);
+            } else {
+                showLibraryIcon(false);
+                library = null;
+                state = MainMenuState.DEFAULT;
+                MenuText.text = DEFAULT_TEXT;
+                updateCharacters();
+            }
         }
     }
 
     void Update() {
 
+    }
+
+    private void createLibraryIcon() {
+        GameObject icon = new GameObject("LibraryIcon", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        icon.transform.SetParent(dwarf.transform.parent, false);
+        RectTransform rect = (RectTransform)icon.transform;
+        rect.anchorMin = new Vector2(0.5f, 0.5f);
+        rect.anchorMax = new Vector2(0.5f, 0.5f);
+        rect.sizeDelta = new Vector2(160, 160);
+        rect.anchoredPosition = new Vector2(-322, 210);
+        libraryIcon = icon.GetComponent<Image>();
+        libraryIcon.raycastTarget = false;
+        icon.SetActive(false);
+    }
+
+    private void showLibraryIcon(bool visible) {
+        dwarf.SetActive(!visible);
+        ogre.SetActive(!visible);
+        logo.SetActive(!visible);
+        libraryIcon.gameObject.SetActive(visible);
+        if (visible) libraryIcon.sprite = Resources.Load<Sprite>("LibraryIcons/library_" + library.Icon);
     }
 
     private void updateCharacters() {

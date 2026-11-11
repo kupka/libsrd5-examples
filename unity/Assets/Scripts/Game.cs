@@ -25,6 +25,27 @@ public static class Game {
         property.GetSetMethod(true).Invoke(hero, new object[] { name });
     }
 
+    /// <summary>The heroes of the current mode: the adventure party, or the free-mode characters.</summary>
+    public static List<CharacterSheet> Party {
+        get { return Adventure.Current != null ? Adventure.Current.Party : Characters; }
+    }
+
+    /// <summary>True if the hero at this index fights in the front line.</summary>
+    public static bool IsFrontLine(int index) {
+        if (Adventure.Current != null) return Adventure.Current.IsFront(index);
+        return index == FrontLineChar1 || index == FrontLineChar2;
+    }
+
+    /// <summary>The enemies of the next fight: the adventure's fight, or two of the selected kind.</summary>
+    public static Monster[] CreateEnemies() {
+        if (Adventure.Current != null && Adventure.Current.InFight) return Adventure.Current.CreateEnemies();
+        switch (Scene) {
+            case CombatScene.BOARS: return new Monster[] { Monsters.Boar, Monsters.Boar };
+            case CombatScene.OGRES: return new Monster[] { Monsters.Ogre, Monsters.Ogre };
+            default: return new Monster[] { Monsters.Orc, Monsters.Orc };
+        }
+    }
+
     public static void StringPad(ref string s, int length) {
         if (s.Length > length)
             s = s.Substring(0, length - 3) + "...";

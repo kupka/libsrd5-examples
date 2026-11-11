@@ -100,7 +100,7 @@ public partial class Combat : Control, IKeyInputReceiver {
             setAttackDefendSprites(battle.CurrentCombatant, target);
         } else if (state == CombatState.WON || state == CombatState.LOST) {
             if (code == Key.Key0) {
-                foreach (CharacterSheet hero in Game.Characters) {
+                foreach (CharacterSheet hero in Game.Party) {
                     hero.LongRest();
                 }
                 Game.LoadScene(this, "MainMenu");
@@ -330,6 +330,7 @@ public partial class Combat : Control, IKeyInputReceiver {
         } else if (GlobalEvents.EventTypes.DEATH.Equals(sender)) {
             GlobalEvents.Death death = (GlobalEvents.Death)args;
             log(String.Format("{0} dies", nameOf(death.Victim)));
+            hideIfDefeated(death.Victim);
         } else {
             GD.Print("Unexpected Event.");
         }
@@ -358,7 +359,6 @@ public partial class Combat : Control, IKeyInputReceiver {
         OrcSprites = Game.LoadUnitSprites("orc");
         OgreSprites = Game.LoadUnitSprites("ogre");
 
-        enemies = new Monster[2];
         battle = new BattleGroundClassic();
         MenuText.Text = WAITING_FOR_ENEMIES;
         logQueue = new FixedSizedQueue<string>(11);
@@ -367,8 +367,8 @@ public partial class Combat : Control, IKeyInputReceiver {
         int i = 0;
         int front = 0;
         int back = 0;
-        foreach (CharacterSheet hero in Game.Characters) {
-            if (i == Game.FrontLineChar1 || i == Game.FrontLineChar2) {
+        foreach (CharacterSheet hero in Game.Party) {
+            if (Game.IsFrontLine(i)) {
                 battle.AddCombatant(hero, ClassicLocation.Row.FRONT_LEFT);
                 if (front++ == 0) {
                     heroFront1 = i;
@@ -390,31 +390,20 @@ public partial class Combat : Control, IKeyInputReceiver {
             i++;
         }
 
-        Texture2D[] enemySprites = null;
-        TextureRect[] enemyImages = null;
-        if (Game.Scene == Game.CombatScene.BOARS) {
-            enemies[0] = Monsters.Boar;
-            enemies[1] = Monsters.Boar;
-            enemySprites = BoarSprites;
-            enemyImages = MediumEnemies;
-        } else if (Game.Scene == Game.CombatScene.OGRES) {
-            enemies[0] = Monsters.Ogre;
-            enemies[1] = Monsters.Ogre;
-            enemySprites = OgreSprites;
-            enemyImages = LargeEnemies;
-        } else if (Game.Scene == Game.CombatScene.ORCS) {
-            enemies[0] = Monsters.Orc;
-            enemies[1] = Monsters.Orc;
-            enemySprites = OrcSprites;
-            enemyImages = MediumEnemies;
-        }
-
-        for (i = 0; i < enemies.Length; i++) {
-            enemyImages[i].Visible = true;
-            enemyImages[i].Texture = enemySprites[0];
-            battle.AddCombatant(enemies[i], ClassicLocation.Row.FRONT_RIGHT);
-            monsterNames[enemies[i]] = nameOf(enemies[i]) + " #" + i;
-            combattants.Add(nameOf(enemies[i]), new CombatantData(enemies[i], enemyImages[i], enemySprites));
+        enemies = Game.CreateEnemies();
+        EnemyLayout.Placement[] placements = EnemyLayout.Place(enemies);
+        // add back to front (higher on screen first) so nearer enemies are drawn on top
+        List<int> drawOrder = new List<int>();
+        for (i = 0; i < enemies.Length; i++) drawOrder.Add(i);
+        drawOrder.Sort((a, b) => placements[b].Y.CompareTo(placements[a].Y));
+        foreach (int k in drawOrder) {
+            Texture2D[] sprites = enemySprites(enemies[k]);
+            TextureRect image = createEnemyImage(placements[k]);
+            image.Visible = true;
+            image.Texture = sprites[0];
+            battle.AddCombatant(enemies[k], ClassicLocation.Row.FRONT_RIGHT);
+            monsterNames[enemies[k]] = nameOf(enemies[k]) + " #" + k;
+            combattants.Add(nameOf(enemies[k]), new CombatantData(enemies[k], image, sprites));
         }
         battle.Initialize();
         timer = 2.0f;
@@ -431,6 +420,46 @@ public partial class Combat : Control, IKeyInputReceiver {
         if (hero.Race.Race == Race.HIGH_ELF)
             return heroClass == Class.WIZARD ? ElfWizardSprites : heroClass == Class.DRUID ? ElfDruidSprites : ElfBarbarianSprites;
         return heroClass == Class.WIZARD ? HumanWizardSprites : heroClass == Class.DRUID ? HumanDruidSprites : HumanBarbarianSprites;
+    }
+
+    private Texture2D[] enemySprites(Monster enemy) {
+        switch (enemy.ID) {
+            case Monsters.ID.BOAR: return BoarSprites;
+            case Monsters.ID.OGRE: return OgreSprites;
+            default: return OrcSprites;
+        }
+    }
+
+    // Defeated enemies disappear from the battlefield (heroes stay: they can be healed).
+    // Called on the DEATH event; libsrd5 sets the hit points to 0 before it.
+    private void hideIfDefeated(Combatant combatant) {
+        if (!(combatant is Monster)) return;
+        if (!combatant.Dead && combatant.HitPoints > 0) return;
+        CombatantData data;
+        if (combattants.TryGetValue(nameOf(combatant), out data))
+            data.Image.Visible = false;
+    }
+
+    private void combatFinished(bool won) {
+        if (Adventure.Current != null) Adventure.Current.FightFinished(won);
+    }
+
+    private int enemyInsertIndex = -1;
+
+    // A copy of the hidden template node, at the given place (Unity UI coordinates: centre, y up)
+    private TextureRect createEnemyImage(EnemyLayout.Placement placement) {
+        TextureRect template = placement.Size > 200 ? LargeEnemies[0] : MediumEnemies[0];
+        if (enemyInsertIndex < 0)
+            enemyInsertIndex = Math.Min(LargeEnemies[0].GetIndex(), MediumEnemies[0].GetIndex());
+        TextureRect image = (TextureRect)template.Duplicate();
+        AddChild(image);
+        MoveChild(image, enemyInsertIndex++);
+        float half = (float)placement.Size / 2;
+        image.OffsetLeft = (float)placement.X - half;
+        image.OffsetRight = (float)placement.X + half;
+        image.OffsetTop = -(float)placement.Y - half;
+        image.OffsetBottom = -(float)placement.Y + half;
+        return image;
     }
 
     private void assignSprites(CharacterSheet hero, TextureRect heroImage) {
@@ -470,7 +499,7 @@ public partial class Combat : Control, IKeyInputReceiver {
         CharacterSheet target = null;
         foreach (int index in new int[] { heroFront1, heroFront2, heroBack1, heroBack2 }) {
             if (index == -1) continue;
-            CharacterSheet hero = Game.Characters[index];
+            CharacterSheet hero = Game.Party[index];
             if (hero.HitPoints > 0) {
                 target = hero;
                 break;
@@ -479,6 +508,7 @@ public partial class Combat : Control, IKeyInputReceiver {
         if (target == null) {
             state = CombatState.LOST;
             MenuText.Text = LOST;
+            combatFinished(false);
             return;
         }
         if (battle.Distance(target) > 5) {
@@ -511,9 +541,11 @@ public partial class Combat : Control, IKeyInputReceiver {
         if (!heroAlive) {
             state = CombatState.LOST;
             MenuText.Text = LOST;
+            combatFinished(false);
         } else if (!monsterAlive) {
             state = CombatState.WON;
             MenuText.Text = WON;
+            combatFinished(true);
         }
     }
 
@@ -567,11 +599,16 @@ public partial class Combat : Control, IKeyInputReceiver {
 
     private string getSelectTargetsText() {
         string text = "Select target(s)\n";
+        bool anyOutOfRange = false;
         Dictionary<string, CombatantData>.Enumerator enumerator = combattants.GetEnumerator();
         int i = 1;
         while (enumerator.MoveNext()) {
             KeyValuePair<string, CombatantData> current = enumerator.Current;
             string name = current.Key;
+            if (outOfRange(current.Value.Combatant)) {
+                name = "(" + name + ")";
+                anyOutOfRange = true;
+            }
             Game.StringPad(ref name, 13);
             string selected = selectedTargets.Contains(current.Key) ? "*" : " ";
             text += String.Format("{2}{0}. {1}", i, name, selected);
@@ -583,7 +620,14 @@ public partial class Combat : Control, IKeyInputReceiver {
         if (i % 2 == 0)
             text += "\n";
         text += "0. Confirm";
+        if (anyOutOfRange) text += "\n(name) = out of range";
         return text;
+    }
+
+    // While choosing spell targets: is the target farther away than the spell's range?
+    private bool outOfRange(Combatant target) {
+        if (state != CombatState.SPELL_SELECT_TARGETS || selectedSpell == null) return false;
+        return battle.Distance(target) > selectedSpell.Range;
     }
 
     private void castSpell() {

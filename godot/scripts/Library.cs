@@ -326,8 +326,8 @@ Select a category on the left, then an entry to see its details here.";
 
     // ---------- Helpers ----------
 
-    // The main text area fits about 57 characters per line; descriptions are cut after 17 lines
-    private const int DESCRIPTION_LINES = 17;
+    // The main text area fits about 57 characters per line; descriptions are cut after 15 lines
+    private const int DESCRIPTION_LINES = 15;
     private const int LINE_WIDTH = 56;
 
     /// <summary>Word-wraps the text like the main text area and cuts it after DESCRIPTION_LINES lines.</summary>

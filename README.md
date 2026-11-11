@@ -34,7 +34,7 @@ One workflow (`.github/workflows/build.yml`) builds all versions on every pull r
 (Windows, Linux, Android) and Blazor; the builds are attached to the
 workflow run as artifacts. When changes are merged into `main`, the same builds are published as a
 [GitHub release](https://github.com/kupka/libsrd5-examples/releases) and the GitHub Pages site
-(`docs/` plus the Unity and Blazor live demos) is deployed.
+(start page in `.github/pages` plus the Unity and Blazor live demos) is deployed.
 
 # Disclaimer
 

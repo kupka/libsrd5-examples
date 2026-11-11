@@ -151,7 +151,7 @@ jobs:
           path: publish/blazor/wwwroot
           include-hidden-files: true
 
-  # Deploys the GitHub Pages site (docs/ + the Unity and Blazor demos built above) when changes land on main.
+  # Deploys the GitHub Pages site (start page + the Unity and Blazor demos built above) when changes land on main.
   # Requires Settings -> Pages -> Source: "GitHub Actions".
   pages:
     name: publish-pages
@@ -174,12 +174,6 @@ jobs:
 
       - uses: actions/configure-pages@v5
 
-      # Same Jekyll build GitHub Pages used to run on docs/ (renders index.md, copies the Unity build)
-      - name: Build docs/ with Jekyll
-        uses: actions/jekyll-build-pages@v1
-        with:
-          source: ./docs
-          destination: ./_site
 
       - uses: actions/download-artifact@v4
         with:
@@ -191,12 +185,12 @@ jobs:
           name: unity-webgl
           path: unity-webgl
 
-      # Added after Jekyll so the files are kept as is (e.g. Blazor's _framework folder)
-      - name: Add Unity demo under /unity and Blazor demo under /blazor
+      - name: Assemble site (start page, /unity, /blazor)
         run: |
-          sudo mkdir -p _site/unity _site/blazor
-          sudo cp -r unity-webgl/. _site/unity/
-          sudo cp -r blazor-web/. _site/blazor/
+          mkdir -p _site/unity _site/blazor
+          cp .github/pages/index.html _site/
+          cp -r unity-webgl/. _site/unity/
+          cp -r blazor-web/. _site/blazor/
           ls _site _site/unity _site/blazor
 
       - uses: actions/upload-pages-artifact@v3

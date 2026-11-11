@@ -16,7 +16,7 @@ public partial class CreateCharacter : Control, IKeyInputReceiver {
     private LineEdit NameInput;
     private BaseButton OKButton, DiceButton;
     private TextureRect CharacterImage;
-    private Texture2D Elf, Dwarf;
+    private Texture2D Elf, Dwarf, Human;
 
     private Race selectedRace = Race.HILL_DWARF;
     private CreateCharacterState state = CreateCharacterState.DEFAULT;
@@ -38,10 +38,12 @@ public partial class CreateCharacter : Control, IKeyInputReceiver {
     private const string RACE_SELECTION_TEXT =
 @"1. Hill Dwarf
 2. High Elf
+3. Human
 0. Back";
     private const string CLASS_SELECTION_TEXT =
 @"1. Barbarian
 2. Druid
+3. Wizard
 0. Back";
 
     private const string DONE_TEXT =
@@ -59,6 +61,7 @@ public partial class CreateCharacter : Control, IKeyInputReceiver {
         DiceButton = GetNode<BaseButton>("Darken/NameInput/ButtonRandom");
         Elf = GD.Load<Texture2D>(Game.WESNOTH + "elf_berserker.png");
         Dwarf = GD.Load<Texture2D>(Game.WESNOTH + "dwarf_berserker.png");
+        Human = GD.Load<Texture2D>(Game.WESNOTH + "human_berserker.png");
 
         // Unity: InputField.onEndEdit + check for Return
         NameInput.TextSubmitted += (string value) => KeyPressHandler(Key.Enter);
@@ -104,6 +107,12 @@ public partial class CreateCharacter : Control, IKeyInputReceiver {
                 MenuText.Text = DEFAULT_TEXT;
                 CharacterImage.Texture = Elf;
                 reRollAbilities();
+            } else if (key == Key.Key3) {
+                selectedRace = Race.HUMAN;
+                state = CreateCharacterState.DEFAULT;
+                MenuText.Text = DEFAULT_TEXT;
+                CharacterImage.Texture = Human;
+                reRollAbilities();
             }
         } else if (state == CreateCharacterState.CHOSE_CLASS) {
             if (key == Key.Key0) {
@@ -119,6 +128,11 @@ public partial class CreateCharacter : Control, IKeyInputReceiver {
                 state = CreateCharacterState.DONE;
                 MenuText.Text = DONE_TEXT;
                 updateCharacterText();
+            } else if (key == Key.Key3) {
+                hero.AddLevel(CharacterClasses.Wizard);
+                state = CreateCharacterState.DONE;
+                MenuText.Text = DONE_TEXT;
+                updateCharacterText();
             }
         } else if (state == CreateCharacterState.DONE) {
             if (key == Key.Key1) {
@@ -128,6 +142,7 @@ public partial class CreateCharacter : Control, IKeyInputReceiver {
             } else if (key == Key.Key0) {
                 state = CreateCharacterState.DEFAULT;
                 MenuText.Text = DEFAULT_TEXT;
+                updateCharacterText();
             }
         } else if (state == CreateCharacterState.ENTER_NAME && key == Key.Enter) {
             string value = NameInput.Text;
@@ -162,13 +177,12 @@ public partial class CreateCharacter : Control, IKeyInputReceiver {
     }
 
     private void updateCharacterText() {
+        // Race description until a class is chosen, then only the class description
+        string description = state == CreateCharacterState.DONE ? Texts.ClassDescription(hero) : Texts.RaceDescription(hero);
         CharacterText.Text = String.Format("STR: {0,2} ({1,2})   DEX: {2,2} ({3,2})\nCON: {4,2} ({5,2})   CHA: {6,2} ({7,2})\nINT: {8,2} ({9,2})   WIS: {10,2} ({11,2})\n\n{12}\n",
             hero.Strength.Value, hero.Strength.Modifier.ToString("+#;-#;0"), hero.Dexterity.Value, hero.Dexterity.Modifier.ToString("+#;-#;0"),
             hero.Constitution.Value, hero.Constitution.Modifier.ToString("+#;-#;0"), hero.Charisma.Value, hero.Charisma.Modifier.ToString("+#;-#;0"),
             hero.Intelligence.Value, hero.Intelligence.Modifier.ToString("+#;-#;0"), hero.Wisdom.Value, hero.Wisdom.Modifier.ToString("+#;-#;0"),
-            selectedRace.Description());
-        foreach (Feat feat in hero.Feats) {
-            CharacterText.Text += String.Format("\n{0}", feat.Description());
-        }
+            description);
     }
 }

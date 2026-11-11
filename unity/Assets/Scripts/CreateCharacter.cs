@@ -19,7 +19,7 @@ public class CreateCharacter : MonoBehaviour, KeyInputReceiver {
 
     public Image CharacterImage;
 
-    public Sprite Elf, Dwarf;
+    public Sprite Elf, Dwarf, Human;
 
     private Race selectedRace = Race.HILL_DWARF;
     private CreateCharacterState state = CreateCharacterState.DEFAULT;
@@ -41,10 +41,12 @@ public class CreateCharacter : MonoBehaviour, KeyInputReceiver {
     private const string RACE_SELECTION_TEXT =
 @"1. Hill Dwarf
 2. High Elf
+3. Human
 0. Back";
     private const string CLASS_SELECTION_TEXT =
 @"1. Barbarian
 2. Druid
+3. Wizard
 0. Back";
 
     private const string DONE_TEXT =
@@ -104,6 +106,12 @@ public class CreateCharacter : MonoBehaviour, KeyInputReceiver {
                 MenuText.text = DEFAULT_TEXT;
                 CharacterImage.sprite = Elf;
                 reRollAbilities();
+            } else if (key == KeyCode.Alpha3) {
+                selectedRace = Race.HUMAN;
+                state = CreateCharacterState.DEFAULT;
+                MenuText.text = DEFAULT_TEXT;
+                CharacterImage.sprite = Human;
+                reRollAbilities();
             }
         } else if (state == CreateCharacterState.CHOSE_CLASS) {
             if (key == KeyCode.Alpha0) {
@@ -119,6 +127,11 @@ public class CreateCharacter : MonoBehaviour, KeyInputReceiver {
                 state = CreateCharacterState.DONE;
                 MenuText.text = DONE_TEXT;
                 updateCharacterText();
+            } else if (key == KeyCode.Alpha3) {
+                hero.AddLevel(CharacterClasses.Wizard);
+                state = CreateCharacterState.DONE;
+                MenuText.text = DONE_TEXT;
+                updateCharacterText();
             }
         } else if (state == CreateCharacterState.DONE) {
             if (key == KeyCode.Alpha1) {
@@ -128,6 +141,7 @@ public class CreateCharacter : MonoBehaviour, KeyInputReceiver {
             } else if (key == KeyCode.Alpha0) {
                 state = CreateCharacterState.DEFAULT;
                 MenuText.text = DEFAULT_TEXT;
+                updateCharacterText();
             }
         } else if (state == CreateCharacterState.ENTER_NAME && key == KeyCode.Return) {
             string value = NameInput.GetComponent<InputField>().text;
@@ -159,13 +173,12 @@ public class CreateCharacter : MonoBehaviour, KeyInputReceiver {
     }
 
     private void updateCharacterText() {
+        // Race description until a class is chosen, then only the class description
+        string description = state == CreateCharacterState.DONE ? Texts.ClassDescription(hero) : Texts.RaceDescription(hero);
         CharacterText.text = String.Format("STR: {0,2} ({1,2})   DEX: {2,2} ({3,2})\nCON: {4,2} ({5,2})   CHA: {6,2} ({7,2})\nINT: {8,2} ({9,2})   WIS: {10,2} ({11,2})\n\n{12}\n",
             hero.Strength.Value, hero.Strength.Modifier.ToString("+#;-#;0"), hero.Dexterity.Value, hero.Dexterity.Modifier.ToString("+#;-#;0"),
             hero.Constitution.Value, hero.Constitution.Modifier.ToString("+#;-#;0"), hero.Charisma.Value, hero.Charisma.Modifier.ToString("+#;-#;0"),
             hero.Intelligence.Value, hero.Intelligence.Modifier.ToString("+#;-#;0"), hero.Wisdom.Value, hero.Wisdom.Modifier.ToString("+#;-#;0"),
-            selectedRace.Description());
-        foreach (Feat feat in hero.Feats) {
-            CharacterText.text += String.Format("\n{0}", feat.Description());
-        }
+            description);
     }
 }

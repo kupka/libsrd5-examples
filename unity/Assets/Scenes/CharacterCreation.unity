@@ -636,6 +636,7 @@ MonoBehaviour:
   CharacterImage: {fileID: 2121267931}
   Elf: {fileID: 21300000, guid: c2e0f33d64262c344a8faa5c7075218d, type: 3}
   Dwarf: {fileID: 21300000, guid: 2d7741acc0460c7459f2630f98f3a5c4, type: 3}
+  Human: {fileID: 21300000, guid: 05dfef8ebe374480b98f0e814fcbc506, type: 3}
 --- !u!1 &191288373
 GameObject:
   m_ObjectHideFlags: 0

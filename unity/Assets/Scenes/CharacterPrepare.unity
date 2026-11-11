@@ -491,6 +491,11 @@ MonoBehaviour:
   DwarfDruid: {fileID: 21300000, guid: e9f037aa0020fb04f957ab411287e8b0, type: 3}
   ElfBerserker: {fileID: 21300000, guid: c2e0f33d64262c344a8faa5c7075218d, type: 3}
   ElfDruid: {fileID: 21300000, guid: b1d6fd8c73bcfd943889167f98ac116f, type: 3}
+  DwarfWizard: {fileID: 21300000, guid: 99a6cc81a382428b8000361cc2a0c577, type: 3}
+  ElfWizard: {fileID: 21300000, guid: 693a5588367f4a47a23dd6641e6d4bbc, type: 3}
+  HumanBerserker: {fileID: 21300000, guid: 05dfef8ebe374480b98f0e814fcbc506, type: 3}
+  HumanDruid: {fileID: 21300000, guid: 27447dcf0c3543e5906f31696f9f888b, type: 3}
+  HumanWizard: {fileID: 21300000, guid: d3a0aa8bc4b8463aaf88db458a088276, type: 3}
 --- !u!1 &191288373
 GameObject:
   m_ObjectHideFlags: 0

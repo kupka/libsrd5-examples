@@ -9,6 +9,7 @@ public partial class Combat : Control, IKeyInputReceiver {
     private int heroFront1 = -1, heroFront2 = -1, heroBack1 = -1, heroBack2 = -1;
     private TextureRect[] LargeEnemies, MediumEnemies;
     private Texture2D[] DwarfBarbarianSprites, DwarfDruidSprites, ElfBarbarianSprites, ElfDruidSprites;
+    private Texture2D[] DwarfWizardSprites, ElfWizardSprites, HumanBarbarianSprites, HumanDruidSprites, HumanWizardSprites;
     private Texture2D[] BoarSprites, OrcSprites, OgreSprites;
     private TextureRect[] Conditions;
 
@@ -348,6 +349,11 @@ public partial class Combat : Control, IKeyInputReceiver {
         DwarfDruidSprites = Game.LoadUnitSprites("dwarf_druid");
         ElfBarbarianSprites = Game.LoadUnitSprites("elf_berserker");
         ElfDruidSprites = Game.LoadUnitSprites("elf_druid");
+        DwarfWizardSprites = Game.LoadUnitSprites("dwarf_wizard");
+        ElfWizardSprites = Game.LoadUnitSprites("elf_wizard");
+        HumanBarbarianSprites = Game.LoadUnitSprites("human_berserker");
+        HumanDruidSprites = Game.LoadUnitSprites("human_druid");
+        HumanWizardSprites = Game.LoadUnitSprites("human_wizard");
         BoarSprites = Game.LoadUnitSprites("boar");
         OrcSprites = Game.LoadUnitSprites("orc");
         OgreSprites = Game.LoadUnitSprites("ogre");
@@ -418,25 +424,20 @@ public partial class Combat : Control, IKeyInputReceiver {
         GlobalEvents.Handlers -= combatLogListener;
     }
 
+    private Texture2D[] heroSprites(CharacterSheet hero) {
+        Class heroClass = hero.Levels[0].Class.Class;
+        if (hero.Race.Race == Race.HILL_DWARF)
+            return heroClass == Class.WIZARD ? DwarfWizardSprites : heroClass == Class.DRUID ? DwarfDruidSprites : DwarfBarbarianSprites;
+        if (hero.Race.Race == Race.HIGH_ELF)
+            return heroClass == Class.WIZARD ? ElfWizardSprites : heroClass == Class.DRUID ? ElfDruidSprites : ElfBarbarianSprites;
+        return heroClass == Class.WIZARD ? HumanWizardSprites : heroClass == Class.DRUID ? HumanDruidSprites : HumanBarbarianSprites;
+    }
+
     private void assignSprites(CharacterSheet hero, TextureRect heroImage) {
         heroImage.Visible = true;
-        if (hero.Race.Race == Race.HILL_DWARF) {
-            if (hero.Levels[0].Class.Class == Class.BARBARIAN) {
-                heroImage.Texture = DwarfBarbarianSprites[0];
-                combattants.Add(nameOf(hero), new CombatantData(hero, heroImage, DwarfBarbarianSprites));
-            } else if (hero.Levels[0].Class.Class == Class.DRUID) {
-                heroImage.Texture = DwarfDruidSprites[0];
-                combattants.Add(nameOf(hero), new CombatantData(hero, heroImage, DwarfDruidSprites));
-            }
-        } else if (hero.Race.Race == Race.HIGH_ELF) {
-            if (hero.Levels[0].Class.Class == Class.BARBARIAN) {
-                heroImage.Texture = ElfBarbarianSprites[0];
-                combattants.Add(nameOf(hero), new CombatantData(hero, heroImage, ElfBarbarianSprites));
-            } else if (hero.Levels[0].Class.Class == Class.DRUID) {
-                heroImage.Texture = ElfDruidSprites[0];
-                combattants.Add(nameOf(hero), new CombatantData(hero, heroImage, ElfDruidSprites));
-            }
-        }
+        Texture2D[] sprites = heroSprites(hero);
+        heroImage.Texture = sprites[0];
+        combattants.Add(nameOf(hero), new CombatantData(hero, heroImage, sprites));
     }
 
     public override void _Process(double delta) {

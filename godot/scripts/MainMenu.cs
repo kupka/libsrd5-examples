@@ -10,11 +10,16 @@ public partial class MainMenu : Control, IKeyInputReceiver {
         ARRANGE_CHARACTERS_1,
         ARRANGE_CHARACTERS_2,
         RETURN_ONLY,
-        BATTLE
+        BATTLE,
+        LIBRARY
     }
     private Label MenuText, MainText;
 
     private MainMenuState state = MainMenuState.DEFAULT;
+    private Library library;
+    // Main menu art (and logo), replaced by a category icon while the library is open
+    private Control dwarf, ogre, logo;
+    private TextureRect libraryIcon;
 
     private const string DEFAULT_TEXT =
 @"Remember to equip ranged weapons to characters in the back and prepare spells for casters.
@@ -23,7 +28,8 @@ public partial class MainMenu : Control, IKeyInputReceiver {
 2. Delete a Character
 3. Equip / Prepare a Chracter
 4. Arrange Characters
-5. Start a battle";
+5. Start a battle
+6. Library";
 
     private const string DELETE_TEXT =
 @"Input number of character to delete or 0 to cancel.";
@@ -52,6 +58,10 @@ public partial class MainMenu : Control, IKeyInputReceiver {
     public override void _Ready() {
         MenuText = GetNode<Label>("MenuText");
         MainText = GetNode<Label>("MainText");
+        dwarf = GetNode<Control>("Dwarf");
+        ogre = GetNode<Control>("Ogre");
+        logo = GetNode<Control>("Logo");
+        createLibraryIcon();
         GetNode<ConditionIconBehavior>("IconPulse").Icons.Add(GetNode<Control>("Logo"));
 
         MenuText.Text = DEFAULT_TEXT;
@@ -85,6 +95,12 @@ public partial class MainMenu : Control, IKeyInputReceiver {
             } else if (code == Key.Key5) {
                 MenuText.Text = BATTLE_TEXT;
                 state = MainMenuState.BATTLE;
+            } else if (code == Key.Key6) {
+                library = new Library();
+                state = MainMenuState.LIBRARY;
+                MenuText.Text = library.MenuText;
+                MainText.Text = library.MainText;
+                showLibraryIcon(true);
             }
         } else if (state == MainMenuState.DELETE_CHARACTER) {
             if (code > Key.Key0) {
@@ -146,7 +162,44 @@ public partial class MainMenu : Control, IKeyInputReceiver {
                 Game.Scene = Game.CombatScene.OGRES;
                 Game.LoadScene(this, "Combat");
             }
+        } else if (state == MainMenuState.LIBRARY) {
+            if (library.HandleKey(Game.Digit(code))) {
+                MenuText.Text = library.MenuText;
+                MainText.Text = library.MainText;
+                showLibraryIcon(true);
+            } else {
+                showLibraryIcon(false);
+                library = null;
+                state = MainMenuState.DEFAULT;
+                MenuText.Text = DEFAULT_TEXT;
+                updateCharacters();
+            }
         }
+    }
+
+    private void createLibraryIcon() {
+        libraryIcon = new TextureRect();
+        libraryIcon.Name = "LibraryIcon";
+        libraryIcon.ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize;
+        libraryIcon.StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered;
+        libraryIcon.TextureFilter = TextureFilterEnum.Nearest;
+        libraryIcon.MouseFilter = MouseFilterEnum.Ignore;
+        libraryIcon.Visible = false;
+        AddChild(libraryIcon);
+        // centre (-322, 210), 160x160 in the Unity layout (y up)
+        libraryIcon.SetAnchorsPreset(LayoutPreset.Center);
+        libraryIcon.OffsetLeft = -402;
+        libraryIcon.OffsetRight = -242;
+        libraryIcon.OffsetTop = -290;
+        libraryIcon.OffsetBottom = -130;
+    }
+
+    private void showLibraryIcon(bool visible) {
+        dwarf.Visible = !visible;
+        ogre.Visible = !visible;
+        logo.Visible = !visible;
+        libraryIcon.Visible = visible;
+        if (visible) libraryIcon.Texture = GD.Load<Texture2D>("res://assets/sprites/library/library_" + library.Icon + ".png");
     }
 
     private void updateCharacters() {

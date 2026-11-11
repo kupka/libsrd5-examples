@@ -23,7 +23,8 @@ public partial class CharacterCreation {
 
     private string CharacterImage = Game.WESNOTH + "dwarf_berserker.png";
 
-    private const string Elf = Game.WESNOTH + "elf_berserker.png", Dwarf = Game.WESNOTH + "dwarf_berserker.png";
+    private const string Elf = Game.WESNOTH + "elf_berserker.png", Dwarf = Game.WESNOTH + "dwarf_berserker.png",
+        Human = Game.WESNOTH + "human_berserker.png";
 
     private Race selectedRace = Race.HILL_DWARF;
     private CreateCharacterState state = CreateCharacterState.DEFAULT;
@@ -45,10 +46,12 @@ public partial class CharacterCreation {
     private const string RACE_SELECTION_TEXT =
 @"1. Hill Dwarf
 2. High Elf
+3. Human
 0. Back";
     private const string CLASS_SELECTION_TEXT =
 @"1. Barbarian
 2. Druid
+3. Wizard
 0. Back";
 
     private const string DONE_TEXT =
@@ -90,6 +93,12 @@ public partial class CharacterCreation {
                 MenuText = DEFAULT_TEXT;
                 CharacterImage = Elf;
                 reRollAbilities();
+            } else if (key == KeyCode.Alpha3) {
+                selectedRace = Race.HUMAN;
+                state = CreateCharacterState.DEFAULT;
+                MenuText = DEFAULT_TEXT;
+                CharacterImage = Human;
+                reRollAbilities();
             }
         } else if (state == CreateCharacterState.CHOSE_CLASS) {
             if (key == KeyCode.Alpha0) {
@@ -105,6 +114,11 @@ public partial class CharacterCreation {
                 state = CreateCharacterState.DONE;
                 MenuText = DONE_TEXT;
                 updateCharacterText();
+            } else if (key == KeyCode.Alpha3) {
+                hero.AddLevel(CharacterClasses.Wizard);
+                state = CreateCharacterState.DONE;
+                MenuText = DONE_TEXT;
+                updateCharacterText();
             }
         } else if (state == CreateCharacterState.DONE) {
             if (key == KeyCode.Alpha1) {
@@ -114,6 +128,7 @@ public partial class CharacterCreation {
             } else if (key == KeyCode.Alpha0) {
                 state = CreateCharacterState.DEFAULT;
                 MenuText = DEFAULT_TEXT;
+                updateCharacterText();
             }
         } else if (state == CreateCharacterState.ENTER_NAME && key == KeyCode.Return) {
             string value = nameValue;
@@ -145,14 +160,13 @@ public partial class CharacterCreation {
     }
 
     private void updateCharacterText() {
+        // Race description until a class is chosen, then only the class description
+        string description = state == CreateCharacterState.DONE ? Texts.ClassDescription(hero) : Texts.RaceDescription(hero);
         CharacterText = String.Format("STR: {0,2} ({1,2})   DEX: {2,2} ({3,2})\nCON: {4,2} ({5,2})   CHA: {6,2} ({7,2})\nINT: {8,2} ({9,2})   WIS: {10,2} ({11,2})\n\n{12}\n",
             hero.Strength.Value, hero.Strength.Modifier.ToString("+#;-#;0"), hero.Dexterity.Value, hero.Dexterity.Modifier.ToString("+#;-#;0"),
             hero.Constitution.Value, hero.Constitution.Modifier.ToString("+#;-#;0"), hero.Charisma.Value, hero.Charisma.Modifier.ToString("+#;-#;0"),
             hero.Intelligence.Value, hero.Intelligence.Modifier.ToString("+#;-#;0"), hero.Wisdom.Value, hero.Wisdom.Modifier.ToString("+#;-#;0"),
-            selectedRace.Description());
-        foreach (Feat feat in hero.Feats) {
-            CharacterText += String.Format("\n{0}", feat.Description());
-        }
+            description);
     }
     // Unity: InputField.onEndEdit with Return, OK button and dice button listeners
     private void NameKeyUp(KeyboardEventArgs e) {

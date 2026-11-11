@@ -7,7 +7,7 @@ public partial class ModifyCharacter : Control, IKeyInputReceiver {
     private TextureRect CharacterImage;
     private Label CharacterName, MenuText;
     private RichTextLabel CharacterText; // BBCode enabled, replaces Unity rich text
-    private Texture2D DwarfBerserker, DwarfDruid, ElfBerserker, ElfDruid;
+    private Texture2D DwarfBerserker, DwarfDruid, DwarfWizard, ElfBerserker, ElfDruid, ElfWizard, HumanBerserker, HumanDruid, HumanWizard;
 
     enum ModifyCharacterState {
         DEFAULT,
@@ -73,21 +73,22 @@ public partial class ModifyCharacter : Control, IKeyInputReceiver {
         DwarfDruid = GD.Load<Texture2D>(Game.WESNOTH + "dwarf_druid.png");
         ElfBerserker = GD.Load<Texture2D>(Game.WESNOTH + "elf_berserker.png");
         ElfDruid = GD.Load<Texture2D>(Game.WESNOTH + "elf_druid.png");
+        DwarfWizard = GD.Load<Texture2D>(Game.WESNOTH + "dwarf_wizard.png");
+        ElfWizard = GD.Load<Texture2D>(Game.WESNOTH + "elf_wizard.png");
+        HumanBerserker = GD.Load<Texture2D>(Game.WESNOTH + "human_berserker.png");
+        HumanDruid = GD.Load<Texture2D>(Game.WESNOTH + "human_druid.png");
+        HumanWizard = GD.Load<Texture2D>(Game.WESNOTH + "human_wizard.png");
 
         hero = Game.Characters[Game.SelectedCharacter];
         MenuText.Text = DEFAULT_TEXT;
         CharacterName.Text = hero.Name;
-        if (hero.Race.Race == Race.HILL_DWARF) {
-            if (hero.Levels[0].Class.Class == Class.DRUID)
-                CharacterImage.Texture = DwarfDruid;
-            else
-                CharacterImage.Texture = DwarfBerserker;
-        } else {
-            if (hero.Levels[0].Class.Class == Class.DRUID)
-                CharacterImage.Texture = ElfDruid;
-            else
-                CharacterImage.Texture = ElfBerserker;
-        }
+        Class heroClass = hero.Levels[0].Class.Class;
+        if (hero.Race.Race == Race.HILL_DWARF)
+            CharacterImage.Texture = heroClass == Class.WIZARD ? DwarfWizard : heroClass == Class.DRUID ? DwarfDruid : DwarfBerserker;
+        else if (hero.Race.Race == Race.HIGH_ELF)
+            CharacterImage.Texture = heroClass == Class.WIZARD ? ElfWizard : heroClass == Class.DRUID ? ElfDruid : ElfBerserker;
+        else
+            CharacterImage.Texture = heroClass == Class.WIZARD ? HumanWizard : heroClass == Class.DRUID ? HumanDruid : HumanBerserker;
         displayAbilitiesAndAttacks();
     }
 
@@ -193,15 +194,24 @@ public partial class ModifyCharacter : Control, IKeyInputReceiver {
         }
     }
 
-    private void prepareDruidSpells() {
-        if (hero.Levels[0].Class.Class != Class.DRUID) return;
-        AvailableSpells druidSpells = null;
+    // Druids and wizards learn and prepare a fixed selection of spells implemented in libsrd5
+    private void prepareSpells() {
+        Class heroClass = hero.Levels[0].Class.Class;
+        Spell[] selection;
+        if (heroClass == Class.DRUID)
+            selection = new Spell[] { Spells.Shillelagh, Spells.CharmPerson, Spells.CureWounds, Spells.HealingWord };
+        else if (heroClass == Class.WIZARD)
+            selection = new Spell[] { Spells.FireBolt, Spells.RayOfFrost, Spells.MagicMissile, Spells.BurningHands, Spells.Sleep };
+        else
+            return;
+        AvailableSpells classSpells = null;
         foreach (AvailableSpells spells in hero.AvailableSpells) {
-            if (spells.CharacterClass.Class == Class.DRUID)
-                druidSpells = spells;
+            if (spells.CharacterClass.Class == heroClass)
+                classSpells = spells;
         }
-        druidSpells.AddKnownSpell(Spells.Shillelagh, Spells.CharmPerson, Spells.CureWounds, Spells.HealingWord);
-        druidSpells.AddPreparedSpell(Spells.Shillelagh, Spells.CharmPerson, Spells.CureWounds, Spells.HealingWord);
+        if (classSpells == null) return;
+        classSpells.AddKnownSpell(selection);
+        classSpells.AddPreparedSpell(selection);
     }
 
     public void KeyPressHandler(Key code) {
@@ -247,7 +257,7 @@ public partial class ModifyCharacter : Control, IKeyInputReceiver {
                 state = ModifyCharacterState.PREPARE_SPELLS;
                 MenuText.Text = PREPARE_SPELLS;
                 page = ModifyCharacterPage.SPELLS;
-                prepareDruidSpells();
+                prepareSpells();
                 displaySpells();
             } else if (code == Key.Key7) {
                 // Don't add if one is already in inventory

@@ -43,6 +43,8 @@ html, body {
     pointer-events: none;
 }
 
+.sprite.pixel { image-rendering: pixelated; }
+
 .text {
     color: #fff;
     font-size: 20px;

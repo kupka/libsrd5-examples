@@ -208,7 +208,7 @@ public partial class MainMenu : Control, IKeyInputReceiver {
         foreach (CharacterSheet sheet in Game.Characters) {
             string frontline = "(back)";
             if (i - 1 == Game.FrontLineChar1 || i - 1 == Game.FrontLineChar2) frontline = "(front)";
-            MainText.Text += string.Format("{0}. {1} the {2} {3} {4}\n", i++, sheet.Name, sheet.Race.Name, sheet.Levels[0].Class.Name, frontline);
+            MainText.Text += string.Format("{0}. {1} the {2} {3} {4}\n", i++, sheet.Name, Texts.RaceName(sheet.Race.Race), Texts.ClassName(sheet.Levels[0].Class.Class), frontline);
         }
     }
 }

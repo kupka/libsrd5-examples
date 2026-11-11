@@ -93,7 +93,7 @@ public partial class ModifyCharacter : Control, IKeyInputReceiver {
     }
 
     private void displayAbilitiesAndAttacks() {
-        CharacterText.Text = String.Format("{0}\nLevel {1} {2}\n\n", hero.Race.Name, hero.Levels[0].Levels, hero.Levels[0].Class.Name);
+        CharacterText.Text = String.Format("{0}\nLevel {1} {2}\n\n", Texts.RaceName(hero.Race.Race), hero.Levels[0].Levels, Texts.ClassName(hero.Levels[0].Class.Class));
         CharacterText.Text += "[color=yellow]Abilties[/color]\n";
         CharacterText.Text += String.Format("STR: {0,2} ({1,2})   DEX: {2,2} ({3,2})\nCON: {4,2} ({5,2})   CHA: {6,2} ({7,2})\nINT: {8,2} ({9,2})   WIS: {10,2} ({11,2})\n\n",
             hero.Strength.Value, hero.Strength.Modifier.ToString("+#;-#;0"), hero.Dexterity.Value, hero.Dexterity.Modifier.ToString("+#;-#;0"),

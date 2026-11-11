@@ -18,8 +18,8 @@ public class MainMenuBehavior : MonoBehaviour, KeyInputReceiver {
 
     private MainMenuState state = MainMenuState.DEFAULT;
     private Library library;
-    // Main menu art, replaced by a category icon while the library is open
-    private GameObject dwarf, ogre;
+    // Main menu art (and logo), replaced by a category icon while the library is open
+    private GameObject dwarf, ogre, logo;
     private Image libraryIcon;
 
     private const string DEFAULT_TEXT =
@@ -59,6 +59,7 @@ public class MainMenuBehavior : MonoBehaviour, KeyInputReceiver {
     void Start() {
         dwarf = GameObject.Find("Dwarf");
         ogre = GameObject.Find("Ogre");
+        logo = GameObject.Find("Logo");
         createLibraryIcon();
         MenuText.text = DEFAULT_TEXT;
         updateCharacters();
@@ -205,6 +206,7 @@ public class MainMenuBehavior : MonoBehaviour, KeyInputReceiver {
     private void showLibraryIcon(bool visible) {
         dwarf.SetActive(!visible);
         ogre.SetActive(!visible);
+        logo.SetActive(!visible);
         libraryIcon.gameObject.SetActive(visible);
         if (visible) libraryIcon.sprite = Resources.Load<Sprite>("LibraryIcons/library_" + library.Icon);
     }

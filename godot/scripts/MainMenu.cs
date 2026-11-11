@@ -17,8 +17,8 @@ public partial class MainMenu : Control, IKeyInputReceiver {
 
     private MainMenuState state = MainMenuState.DEFAULT;
     private Library library;
-    // Main menu art, replaced by a category icon while the library is open
-    private Control dwarf, ogre;
+    // Main menu art (and logo), replaced by a category icon while the library is open
+    private Control dwarf, ogre, logo;
     private TextureRect libraryIcon;
 
     private const string DEFAULT_TEXT =
@@ -60,6 +60,7 @@ public partial class MainMenu : Control, IKeyInputReceiver {
         MainText = GetNode<Label>("MainText");
         dwarf = GetNode<Control>("Dwarf");
         ogre = GetNode<Control>("Ogre");
+        logo = GetNode<Control>("Logo");
         createLibraryIcon();
         GetNode<ConditionIconBehavior>("IconPulse").Icons.Add(GetNode<Control>("Logo"));
 
@@ -196,6 +197,7 @@ public partial class MainMenu : Control, IKeyInputReceiver {
     private void showLibraryIcon(bool visible) {
         dwarf.Visible = !visible;
         ogre.Visible = !visible;
+        logo.Visible = !visible;
         libraryIcon.Visible = visible;
         if (visible) libraryIcon.Texture = GD.Load<Texture2D>("res://assets/sprites/library/library_" + library.Icon + ".png");
     }

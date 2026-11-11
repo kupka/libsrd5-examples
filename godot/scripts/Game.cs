@@ -21,6 +21,16 @@ public static class Game {
     public const string SPRITES = "res://assets/sprites/";
     public const string WESNOTH = "res://assets/sprites/wesnoth/";
 
+    /// <summary>
+    /// libsrd5 0.3 made Name read-only for apps (internal setter). The example sets a hero's
+    /// name through reflection until libsrd5 offers a public way.
+    /// </summary>
+    public static void SetName(CharacterSheet hero, string name) {
+        System.Reflection.PropertyInfo property = typeof(GuidClass).GetProperty("Name",
+            System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+        property.GetSetMethod(true).Invoke(hero, new object[] { name });
+    }
+
     public static void StringPad(ref string s, int length) {
         if (s.Length > length)
             s = s.Substring(0, length - 3) + "...";
@@ -70,14 +80,14 @@ public class FixedSizedQueue<T> {
     }
 }
 
-public struct CombattantData {
-    public Combattant Combattant;
+public struct CombatantData {
+    public Combatant Combatant;
     public TextureRect Image;
     public Texture2D[] Sprites;
     public Dictionary<ConditionType, Control> ConditionIcons;
 
-    public CombattantData(Combattant combattant, TextureRect image, Texture2D[] sprites) {
-        Combattant = combattant;
+    public CombatantData(Combatant combattant, TextureRect image, Texture2D[] sprites) {
+        Combatant = combattant;
         Image = image;
         Sprites = sprites;
         ConditionIcons = new Dictionary<ConditionType, Control>();

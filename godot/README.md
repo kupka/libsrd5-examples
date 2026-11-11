@@ -35,9 +35,8 @@ Or from the command line: `dotnet build` in this folder, then `godot --path .`.
 `MainMenu.cs`, `CreateCharacter.cs`, `ModifyCharacter.cs` and `Combat.cs` keep the game logic of the Unity scripts
 line for line; only engine calls changed.
 
-libsrd5 is referenced as the same prebuilt DLL the Unity project ships (`lib/libsrd5.dll`, version 0.1.15).
-Newer libsrd5 versions changed parts of the API (e.g. `Combattant` → `Combatant`, `Item.IsThisA`), so
-upgrading needs small code changes.
+libsrd5 is referenced as a prebuilt DLL (`lib/libsrd5.dll`, currently 0.3.4), the same one the Unity project uses.
+It is built by CI from the libsrd5 version pinned in `../libsrd5.ref` (see the root README).
 
 ## Builds
 

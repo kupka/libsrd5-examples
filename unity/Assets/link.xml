@@ -1,0 +1,4 @@
+<linker>
+    <!-- Keep libsrd5 intact in IL2CPP (WebGL) builds: the example sets hero names via reflection. -->
+    <assembly fullname="libsrd5" preserve="all"/>
+</linker>

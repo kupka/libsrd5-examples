@@ -98,19 +98,19 @@ public partial class ModifyCharacter : Control, IKeyInputReceiver {
             hero.Strength.Value, hero.Strength.Modifier.ToString("+#;-#;0"), hero.Dexterity.Value, hero.Dexterity.Modifier.ToString("+#;-#;0"),
             hero.Constitution.Value, hero.Constitution.Modifier.ToString("+#;-#;0"), hero.Charisma.Value, hero.Charisma.Modifier.ToString("+#;-#;0"),
             hero.Intelligence.Value, hero.Intelligence.Modifier.ToString("+#;-#;0"), hero.Wisdom.Value, hero.Wisdom.Modifier.ToString("+#;-#;0"));
-        CharacterText.Text += String.Format("Hitpoints: {0}   Proficiency: {1}   Armor Class: {2}\n\n", hero.HitPointsMax, hero.Proficiency, hero.ArmorClass);
+        CharacterText.Text += String.Format("Hitpoints: {0}   Proficiency: {1}   Armor Class: {2}\n\n", hero.HitPointsMax, hero.ProficiencyBonus, hero.ArmorClass);
         CharacterText.Text += "[color=yellow]Melee Attacks[/color]\n";
         if (hero.MeleeAttacks.Length > 0) {
             foreach (Attack attack in hero.MeleeAttacks) {
                 CharacterText.Text += String.Format("{0}, {1} To Hit, {2} {3} Damage\n", attack.Name, attack.AttackBonus.ToString("+#;-#;0"),
-                attack.Damage.Dices.ToString(), attack.Damage.Type.Name());
+                attack.Damage.Dice.ToString(), attack.Damage.Type.Name());
             }
         }
         CharacterText.Text += "\n[color=yellow]Ranged Attacks[/color]\n";
         if (hero.RangedAttacks.Length > 0) {
             foreach (Attack attack in hero.RangedAttacks) {
                 CharacterText.Text += String.Format("{0}, {1} To Hit, {2} {3} Damage\n", attack.Name, attack.AttackBonus.ToString("+#;-#;0"),
-                attack.Damage.Dices.ToString(), attack.Damage.Type.Name());
+                attack.Damage.Dice.ToString(), attack.Damage.Type.Name());
             }
         }
     }
@@ -252,7 +252,7 @@ public partial class ModifyCharacter : Control, IKeyInputReceiver {
             } else if (code == Key.Key7) {
                 // Don't add if one is already in inventory
                 foreach (Item item in hero.Inventory.Bag) {
-                    if (item.IsThisA(Potions.PotionOfHealing))
+                    if (item.Is(Potions.PotionOfHealing))
                         return;
                 }
                 hero.Inventory.AddToBag(Potions.PotionOfHealing);
@@ -261,7 +261,7 @@ public partial class ModifyCharacter : Control, IKeyInputReceiver {
             } else if (code == Key.Key8) {
                 // Replace if one is already in inventory (charges could be used up)
                 foreach (Item item in hero.Inventory.Bag) {
-                    if (item.IsThisA(Wands.WandOfMagicMissiles)) {
+                    if (item.Is(Wands.WandOfMagicMissiles)) {
                         hero.Inventory.RemoveFromBag(item);
                         break;
                     }

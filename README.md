@@ -30,7 +30,8 @@ Blazor projects; then open a pull request to build and test the examples against
 
 # Builds
 
-Every pull request builds the Godot (Windows, Linux, Android) and Blazor versions; the builds are attached to the
+One workflow (`.github/workflows/build.yml`) builds all versions on every pull request: Unity (WebGL), Godot
+(Windows, Linux, Android) and Blazor; the builds are attached to the
 workflow run as artifacts. When changes are merged into `main`, the same builds are published as a
 [GitHub release](https://github.com/kupka/libsrd5-examples/releases) and the GitHub Pages site
 (`docs/` plus the Blazor live demo) is deployed.

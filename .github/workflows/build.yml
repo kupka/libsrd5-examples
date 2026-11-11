@@ -6,6 +6,35 @@ on:
     branches: [main]
 
 jobs:
+  unity:
+    name: build-unity
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - uses: actions/cache@v4
+        with:
+          path: unity/Library
+          key: Library-${{ hashFiles('unity/Assets/**', 'unity/Packages/**', 'unity/ProjectSettings/**') }}
+          restore-keys: |
+            Library-
+
+      - name: Build Unity WebGL
+        uses: game-ci/unity-builder@v2
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        with:
+          projectPath: unity
+          targetPlatform: WebGL
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: unity-webgl
+          path: build/WebGL/WebGL
+
   godot:
     name: build-godot
     runs-on: ubuntu-latest
@@ -176,7 +205,7 @@ jobs:
   release:
     name: release
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [godot, blazor]
+    needs: [unity, godot, blazor]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -193,6 +222,7 @@ jobs:
           (cd artifacts/godot-linux && zip -qr ../../dist/libsrd5-examples-godot-linux.zip .)
           cp artifacts/godot-android/libsrd5-examples.apk dist/libsrd5-examples-godot-android.apk
           (cd artifacts/blazor-web && zip -qr ../../dist/libsrd5-examples-blazor-web.zip .)
+          (cd artifacts/unity-webgl && zip -qr ../../dist/libsrd5-examples-unity-webgl.zip .)
           ls -l dist
 
       - name: Create GitHub release
@@ -209,5 +239,6 @@ jobs:
           - **Godot (Windows / Linux):** unzip and run the executable; keep the data folder next to it.
           - **Godot (Android):** debug-signed APK for sideloading (64-bit ARM).
           - **Blazor:** static web app; serve the unzipped folder from any web server or GitHub Pages.
+          - **Unity (WebGL):** static web app; serve the unzipped folder from any web server.
 
           These versions were created with Claude Code and have not been thoroughly reviewed."

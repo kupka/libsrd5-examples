@@ -330,6 +330,7 @@ public partial class Combat : Control, IKeyInputReceiver {
         } else if (GlobalEvents.EventTypes.DEATH.Equals(sender)) {
             GlobalEvents.Death death = (GlobalEvents.Death)args;
             log(String.Format("{0} dies", nameOf(death.Victim)));
+            hideIfDefeated(death.Victim);
         } else {
             GD.Print("Unexpected Event.");
         }
@@ -427,6 +428,16 @@ public partial class Combat : Control, IKeyInputReceiver {
             case Monsters.ID.OGRE: return OgreSprites;
             default: return OrcSprites;
         }
+    }
+
+    // Defeated enemies disappear from the battlefield (heroes stay: they can be healed).
+    // Called on the DEATH event; libsrd5 sets the hit points to 0 before it.
+    private void hideIfDefeated(Combatant combatant) {
+        if (!(combatant is Monster)) return;
+        if (!combatant.Dead && combatant.HitPoints > 0) return;
+        CombatantData data;
+        if (combattants.TryGetValue(nameOf(combatant), out data))
+            data.Image.Visible = false;
     }
 
     private void combatFinished(bool won) {
@@ -588,11 +599,16 @@ public partial class Combat : Control, IKeyInputReceiver {
 
     private string getSelectTargetsText() {
         string text = "Select target(s)\n";
+        bool anyOutOfRange = false;
         Dictionary<string, CombatantData>.Enumerator enumerator = combattants.GetEnumerator();
         int i = 1;
         while (enumerator.MoveNext()) {
             KeyValuePair<string, CombatantData> current = enumerator.Current;
             string name = current.Key;
+            if (outOfRange(current.Value.Combatant)) {
+                name = "(" + name + ")";
+                anyOutOfRange = true;
+            }
             Game.StringPad(ref name, 13);
             string selected = selectedTargets.Contains(current.Key) ? "*" : " ";
             text += String.Format("{2}{0}. {1}", i, name, selected);
@@ -604,7 +620,14 @@ public partial class Combat : Control, IKeyInputReceiver {
         if (i % 2 == 0)
             text += "\n";
         text += "0. Confirm";
+        if (anyOutOfRange) text += "\n(name) = out of range";
         return text;
+    }
+
+    // While choosing spell targets: is the target farther away than the spell's range?
+    private bool outOfRange(Combatant target) {
+        if (state != CombatState.SPELL_SELECT_TARGETS || selectedSpell == null) return false;
+        return battle.Distance(target) > selectedSpell.Range;
     }
 
     private void castSpell() {

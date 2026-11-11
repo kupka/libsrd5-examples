@@ -11,7 +11,8 @@ public partial class MainMenu : Control, IKeyInputReceiver {
         ARRANGE_CHARACTERS_2,
         RETURN_ONLY,
         BATTLE,
-        LIBRARY
+        LIBRARY,
+        ADVENTURE
     }
     private Label MenuText, MainText;
 
@@ -29,7 +30,8 @@ public partial class MainMenu : Control, IKeyInputReceiver {
 3. Equip / Prepare a Chracter
 4. Arrange Characters
 5. Start a battle
-6. Library";
+6. Library
+7. Adventure";
 
     private const string DELETE_TEXT =
 @"Input number of character to delete or 0 to cancel.";
@@ -67,6 +69,7 @@ public partial class MainMenu : Control, IKeyInputReceiver {
         MenuText.Text = DEFAULT_TEXT;
         updateCharacters();
         srd5.Random.State = (uint)DateTime.Now.ToFileTime();
+        if (Adventure.Current != null) enterAdventure();
     }
 
     public void KeyPressHandler(Key code) {
@@ -95,6 +98,9 @@ public partial class MainMenu : Control, IKeyInputReceiver {
             } else if (code == Key.Key5) {
                 MenuText.Text = BATTLE_TEXT;
                 state = MainMenuState.BATTLE;
+            } else if (code == Key.Key7) {
+                Adventure.Current = new Adventure();
+                enterAdventure();
             } else if (code == Key.Key6) {
                 library = new Library();
                 state = MainMenuState.LIBRARY;
@@ -162,6 +168,21 @@ public partial class MainMenu : Control, IKeyInputReceiver {
                 Game.Scene = Game.CombatScene.OGRES;
                 Game.LoadScene(this, "Combat");
             }
+        } else if (state == MainMenuState.ADVENTURE) {
+            AdventureAction action = Adventure.Current.HandleKey(Game.Digit(code));
+            if (action == AdventureAction.CREATE_CHARACTER) {
+                Game.LoadScene(this, "CharacterCreation");
+            } else if (action == AdventureAction.START_FIGHT) {
+                Game.LoadScene(this, "Combat");
+            } else if (action == AdventureAction.LEAVE) {
+                state = MainMenuState.DEFAULT;
+                MenuText.Text = DEFAULT_TEXT;
+                updateCharacters();
+                showMenuArt(true);
+            } else {
+                MenuText.Text = Adventure.Current.MenuText;
+                MainText.Text = Adventure.Current.MainText;
+            }
         } else if (state == MainMenuState.LIBRARY) {
             if (library.HandleKey(Game.Digit(code))) {
                 MenuText.Text = library.MenuText;
@@ -194,12 +215,25 @@ public partial class MainMenu : Control, IKeyInputReceiver {
         libraryIcon.OffsetBottom = -130;
     }
 
+    private void showMenuArt(bool visible) {
+        dwarf.Visible = visible;
+        ogre.Visible = visible;
+        logo.Visible = visible;
+    }
+
     private void showLibraryIcon(bool visible) {
-        dwarf.Visible = !visible;
-        ogre.Visible = !visible;
-        logo.Visible = !visible;
+        showMenuArt(!visible);
         libraryIcon.Visible = visible;
         if (visible) libraryIcon.Texture = GD.Load<Texture2D>("res://assets/sprites/library/library_" + library.Icon + ".png");
+    }
+
+    // Adventure mode uses the menu and main text areas; the menu art is hidden meanwhile
+    private void enterAdventure() {
+        state = MainMenuState.ADVENTURE;
+        Adventure.Current.Refresh();
+        MenuText.Text = Adventure.Current.MenuText;
+        MainText.Text = Adventure.Current.MainText;
+        showMenuArt(false);
     }
 
     private void updateCharacters() {

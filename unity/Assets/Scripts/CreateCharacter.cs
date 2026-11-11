@@ -152,7 +152,7 @@ public class CreateCharacter : MonoBehaviour, KeyInputReceiver {
                 NameInput.GetComponent<InputField>().text = "";
                 NameInput.GetComponent<InputField>().placeholder.GetComponent<Text>().text = "Too long";
             } else {
-                foreach (CharacterSheet sheet in Game.Characters) {
+                foreach (CharacterSheet sheet in Game.Party) {
                     if (sheet.Name == value) {
                         NameInput.GetComponent<InputField>().text = "";
                         NameInput.GetComponent<InputField>().placeholder.GetComponent<Text>().text = "Already taken";
@@ -160,7 +160,7 @@ public class CreateCharacter : MonoBehaviour, KeyInputReceiver {
                     }
                 }
                 Game.SetName(hero, value);
-                Game.Characters.Add(hero);
+                Game.Party.Add(hero);
                 SceneManager.LoadScene("MainMenu", LoadSceneMode.Single);
             }
             OKButton.Select();

@@ -153,7 +153,7 @@ public partial class CreateCharacter : Control, IKeyInputReceiver {
                 NameInput.Text = "";
                 NameInput.PlaceholderText = "Too long";
             } else {
-                foreach (CharacterSheet sheet in Game.Characters) {
+                foreach (CharacterSheet sheet in Game.Party) {
                     if (sheet.Name == value) {
                         NameInput.Text = "";
                         NameInput.PlaceholderText = "Already taken";
@@ -162,7 +162,7 @@ public partial class CreateCharacter : Control, IKeyInputReceiver {
                     }
                 }
                 Game.SetName(hero, value);
-                Game.Characters.Add(hero);
+                Game.Party.Add(hero);
                 Game.LoadScene(this, "MainMenu");
                 return;
             }

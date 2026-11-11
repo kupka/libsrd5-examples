@@ -102,7 +102,7 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
             setAttackDefendSprites(battle.CurrentCombatant, target);
         } else if (state == CombatState.WON || state == CombatState.LOST) {
             if (code == KeyCode.Alpha0) {
-                foreach (CharacterSheet hero in Game.Characters) {
+                foreach (CharacterSheet hero in Game.Party) {
                     hero.LongRest();
                 }
                 SceneManager.LoadScene("MainMenu");
@@ -333,7 +333,6 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
 
     // Start is called before the first frame update
     void Start() {
-        enemies = new Monster[2];
         battle = new BattleGroundClassic();
         MenuText.text = WAITING_FOR_ENEMIES;
         logQueue = new FixedSizedQueue<string>(11);
@@ -342,8 +341,8 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
         int i = 0;
         int front = 0;
         int back = 0;
-        foreach (CharacterSheet hero in Game.Characters) {
-            if (i == Game.FrontLineChar1 || i == Game.FrontLineChar2) {
+        foreach (CharacterSheet hero in Game.Party) {
+            if (Game.IsFrontLine(i)) {
                 battle.AddCombatant(hero, ClassicLocation.Row.FRONT_LEFT);
                 if (front++ == 0) {
                     heroFront1 = i;
@@ -365,31 +364,20 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
             i++;
         }
 
-        Sprite[] enemySprites = null;
-        Image[] enemyImages = null;
-        if (Game.Scene == Game.CombatScene.BOARS) {
-            enemies[0] = Monsters.Boar;
-            enemies[1] = Monsters.Boar;
-            enemySprites = BoarSprites;
-            enemyImages = MediumEnemies;
-        } else if (Game.Scene == Game.CombatScene.OGRES) {
-            enemies[0] = Monsters.Ogre;
-            enemies[1] = Monsters.Ogre;
-            enemySprites = OgreSprites;
-            enemyImages = LargeEnemies;
-        } else if (Game.Scene == Game.CombatScene.ORCS) {
-            enemies[0] = Monsters.Orc;
-            enemies[1] = Monsters.Orc;
-            enemySprites = OrcSprites;
-            enemyImages = MediumEnemies;
-        }
-
-        for (i = 0; i < enemies.Length; i++) {
-            enemyImages[i].gameObject.SetActive(true);
-            enemyImages[i].sprite = enemySprites[0];
-            battle.AddCombatant(enemies[i], ClassicLocation.Row.FRONT_RIGHT);
-            monsterNames[enemies[i]] = nameOf(enemies[i]) + " #" + i;
-            combattants.Add(nameOf(enemies[i]), new CombatantData(enemies[i], enemyImages[i], enemySprites));
+        enemies = Game.CreateEnemies();
+        EnemyLayout.Placement[] placements = EnemyLayout.Place(enemies);
+        // add back to front (higher on screen first) so nearer enemies are drawn on top
+        List<int> drawOrder = new List<int>();
+        for (i = 0; i < enemies.Length; i++) drawOrder.Add(i);
+        drawOrder.Sort((a, b) => placements[b].Y.CompareTo(placements[a].Y));
+        foreach (int k in drawOrder) {
+            Sprite[] sprites = enemySprites(enemies[k]);
+            Image image = createEnemyImage(placements[k]);
+            image.gameObject.SetActive(true);
+            image.sprite = sprites[0];
+            battle.AddCombatant(enemies[k], ClassicLocation.Row.FRONT_RIGHT);
+            monsterNames[enemies[k]] = nameOf(enemies[k]) + " #" + k;
+            combattants.Add(nameOf(enemies[k]), new CombatantData(enemies[k], image, sprites));
         }
         battle.Initialize();
         timer = 2.0f;
@@ -406,6 +394,32 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
         if (hero.Race.Race == Race.HIGH_ELF)
             return heroClass == Class.WIZARD ? ElfWizardSprites : heroClass == Class.DRUID ? ElfDruidSprites : ElfBarbarianSprites;
         return heroClass == Class.WIZARD ? HumanWizardSprites : heroClass == Class.DRUID ? HumanDruidSprites : HumanBarbarianSprites;
+    }
+
+    private Sprite[] enemySprites(Monster enemy) {
+        switch (enemy.ID) {
+            case Monsters.ID.BOAR: return BoarSprites;
+            case Monsters.ID.OGRE: return OgreSprites;
+            default: return OrcSprites;
+        }
+    }
+
+    private void combatFinished(bool won) {
+        if (Adventure.Current != null) Adventure.Current.FightFinished(won);
+    }
+
+    private int enemyInsertIndex = -1;
+
+    // A copy of the hidden template image, at the given place (Unity UI coordinates)
+    private Image createEnemyImage(EnemyLayout.Placement placement) {
+        Image template = placement.Size > 200 ? LargeEnemies[0] : MediumEnemies[0];
+        if (enemyInsertIndex < 0)
+            enemyInsertIndex = Math.Min(LargeEnemies[0].transform.GetSiblingIndex(), MediumEnemies[0].transform.GetSiblingIndex());
+        Image image = Instantiate(template, template.transform.parent);
+        image.transform.SetSiblingIndex(enemyInsertIndex++);
+        image.rectTransform.anchoredPosition = new Vector2((float)placement.X, (float)placement.Y);
+        image.rectTransform.sizeDelta = new Vector2((float)placement.Size, (float)placement.Size);
+        return image;
     }
 
     private void assignSprites(CharacterSheet hero, Image heroImage) {
@@ -446,7 +460,7 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
         CharacterSheet target = null;
         foreach (int index in new int[] { heroFront1, heroFront2, heroBack1, heroBack2 }) {
             if (index == -1) continue;
-            CharacterSheet hero = Game.Characters[index];
+            CharacterSheet hero = Game.Party[index];
             if (hero.HitPoints > 0) {
                 target = hero;
                 break;
@@ -455,6 +469,7 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
         if (target == null) {
             state = CombatState.LOST;
             MenuText.text = LOST;
+            combatFinished(false);
             return;
         }
         if (battle.Distance(target) > 5) {
@@ -487,9 +502,11 @@ public class CombatBehavior : MonoBehaviour, KeyInputReceiver {
         if (!heroAlive) {
             state = CombatState.LOST;
             MenuText.text = LOST;
+            combatFinished(false);
         } else if (!monsterAlive) {
             state = CombatState.WON;
             MenuText.text = WON;
+            combatFinished(true);
         }
     }
 

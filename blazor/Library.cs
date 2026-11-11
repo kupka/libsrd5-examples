@@ -183,6 +183,18 @@ Select a category on the left, then an entry to see its details here.";
         return list;
     }
 
+    /// <summary>Stats and properties of an item (also used by the adventure shop).</summary>
+    public static string ItemDetails(Item item) {
+        if (item is Weapon) return weaponDetails((Weapon)item);
+        if (item is Armor) return armorDetails((Armor)item);
+        if (item is Shield) return shieldDetails((Shield)item);
+        if (item is Usable) return usableDetails((Usable)item);
+        if (item is Consumable) return consumableDetails((Consumable)item);
+        StringBuilder text = header(item);
+        footer(text, item);
+        return text.ToString();
+    }
+
     private static string weaponDetails(Weapon weapon) {
         StringBuilder text = header(weapon);
         text.AppendFormat("Damage:      {0} {1}\n", weapon.Damage.Dice, weapon.Damage.Type.Name());

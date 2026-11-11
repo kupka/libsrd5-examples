@@ -12,8 +12,7 @@ public partial class Combat {
     private Slot HeroFront1 = new Slot(-233, 122, 192, 192), HeroFront2 = new Slot(-203, -57, 192, 192),
         HeroBack1 = new Slot(-426, 127, 192, 192), HeroBack2 = new Slot(-401, -47, 192, 192);
     private int heroFront1 = -1, heroFront2 = -1, heroBack1 = -1, heroBack2 = -1;
-    private Slot[] LargeEnemies = { new Slot(200, 143, 288, 288), new Slot(273, -26, 288, 288) };
-    private Slot[] MediumEnemies = { new Slot(266, 170, 192, 192), new Slot(200, 80, 192, 192), new Slot(270, -44, 192, 192) };
+    private List<Slot> EnemySlots = new List<Slot>();
     private string[] DwarfBarbarianSprites = Game.UnitSprites("dwarf_berserker"), DwarfDruidSprites = Game.UnitSprites("dwarf_druid"),
         ElfBarbarianSprites = Game.UnitSprites("elf_berserker"), ElfDruidSprites = Game.UnitSprites("elf_druid");
     private string[] DwarfWizardSprites = Game.UnitSprites("dwarf_wizard"), ElfWizardSprites = Game.UnitSprites("elf_wizard"),
@@ -31,8 +30,7 @@ public partial class Combat {
     private IEnumerable<Slot> AllSlots {
         get {
             yield return HeroFront1; yield return HeroFront2; yield return HeroBack1; yield return HeroBack2;
-            foreach (Slot slot in MediumEnemies) yield return slot;
-            foreach (Slot slot in LargeEnemies) yield return slot;
+            foreach (Slot slot in EnemySlots) yield return slot;
         }
     }
 
@@ -122,7 +120,7 @@ public partial class Combat {
             setAttackDefendSprites(battle.CurrentCombatant, target);
         } else if (state == CombatState.WON || state == CombatState.LOST) {
             if (code == KeyCode.Alpha0) {
-                foreach (CharacterSheet hero in Game.Characters) {
+                foreach (CharacterSheet hero in Game.Party) {
                     hero.LongRest();
                 }
                 LoadScene("MainMenu");
@@ -344,7 +342,6 @@ public partial class Combat {
     }
 
     protected override void Start() {
-        enemies = new Monster[2];
         battle = new BattleGroundClassic();
         MenuText = WAITING_FOR_ENEMIES;
         logQueue = new FixedSizedQueue<string>(11);
@@ -352,8 +349,8 @@ public partial class Combat {
         int i = 0;
         int front = 0;
         int back = 0;
-        foreach (CharacterSheet hero in Game.Characters) {
-            if (i == Game.FrontLineChar1 || i == Game.FrontLineChar2) {
+        foreach (CharacterSheet hero in Game.Party) {
+            if (Game.IsFrontLine(i)) {
                 battle.AddCombatant(hero, ClassicLocation.Row.FRONT_LEFT);
                 if (front++ == 0) {
                     heroFront1 = i;
@@ -375,31 +372,21 @@ public partial class Combat {
             i++;
         }
 
-        string[] enemySprites = null;
-        Slot[] enemyImages = null;
-        if (Game.Scene == Game.CombatScene.BOARS) {
-            enemies[0] = Monsters.Boar;
-            enemies[1] = Monsters.Boar;
-            enemySprites = BoarSprites;
-            enemyImages = MediumEnemies;
-        } else if (Game.Scene == Game.CombatScene.OGRES) {
-            enemies[0] = Monsters.Ogre;
-            enemies[1] = Monsters.Ogre;
-            enemySprites = OgreSprites;
-            enemyImages = LargeEnemies;
-        } else if (Game.Scene == Game.CombatScene.ORCS) {
-            enemies[0] = Monsters.Orc;
-            enemies[1] = Monsters.Orc;
-            enemySprites = OrcSprites;
-            enemyImages = MediumEnemies;
-        }
-
-        for (i = 0; i < enemies.Length; i++) {
-            enemyImages[i].Visible = true;
-            enemyImages[i].Sprite = enemySprites[0];
-            battle.AddCombatant(enemies[i], ClassicLocation.Row.FRONT_RIGHT);
-            monsterNames[enemies[i]] = nameOf(enemies[i]) + " #" + i;
-            combattants.Add(nameOf(enemies[i]), new CombatantData(enemies[i], enemyImages[i], enemySprites));
+        enemies = Game.CreateEnemies();
+        EnemyLayout.Placement[] placements = EnemyLayout.Place(enemies);
+        // add back to front (higher on screen first) so nearer enemies are drawn on top
+        List<int> drawOrder = new List<int>();
+        for (i = 0; i < enemies.Length; i++) drawOrder.Add(i);
+        drawOrder.Sort((a, b) => placements[b].Y.CompareTo(placements[a].Y));
+        foreach (int k in drawOrder) {
+            string[] sprites = enemySprites(enemies[k]);
+            Slot image = new Slot(placements[k].X, placements[k].Y, placements[k].Size, placements[k].Size);
+            EnemySlots.Add(image);
+            image.Visible = true;
+            image.Sprite = sprites[0];
+            battle.AddCombatant(enemies[k], ClassicLocation.Row.FRONT_RIGHT);
+            monsterNames[enemies[k]] = nameOf(enemies[k]) + " #" + k;
+            combattants.Add(nameOf(enemies[k]), new CombatantData(enemies[k], image, sprites));
         }
         battle.Initialize();
         timer = 2.0f;
@@ -418,6 +405,18 @@ public partial class Combat {
         if (hero.Race.Race == Race.HIGH_ELF)
             return heroClass == Class.WIZARD ? ElfWizardSprites : heroClass == Class.DRUID ? ElfDruidSprites : ElfBarbarianSprites;
         return heroClass == Class.WIZARD ? HumanWizardSprites : heroClass == Class.DRUID ? HumanDruidSprites : HumanBarbarianSprites;
+    }
+
+    private string[] enemySprites(Monster enemy) {
+        switch (enemy.ID) {
+            case Monsters.ID.BOAR: return BoarSprites;
+            case Monsters.ID.OGRE: return OgreSprites;
+            default: return OrcSprites;
+        }
+    }
+
+    private void combatFinished(bool won) {
+        if (Adventure.Current != null) Adventure.Current.FightFinished(won);
     }
 
     private void assignSprites(CharacterSheet hero, Slot heroImage) {
@@ -468,7 +467,7 @@ public partial class Combat {
         CharacterSheet target = null;
         foreach (int index in new int[] { heroFront1, heroFront2, heroBack1, heroBack2 }) {
             if (index == -1) continue;
-            CharacterSheet hero = Game.Characters[index];
+            CharacterSheet hero = Game.Party[index];
             if (hero.HitPoints > 0) {
                 target = hero;
                 break;
@@ -477,6 +476,7 @@ public partial class Combat {
         if (target == null) {
             state = CombatState.LOST;
             MenuText = LOST;
+            combatFinished(false);
             return;
         }
         if (battle.Distance(target) > 5) {
@@ -509,9 +509,11 @@ public partial class Combat {
         if (!heroAlive) {
             state = CombatState.LOST;
             MenuText = LOST;
+            combatFinished(false);
         } else if (!monsterAlive) {
             state = CombatState.WON;
             MenuText = WON;
+            combatFinished(true);
         }
     }
 

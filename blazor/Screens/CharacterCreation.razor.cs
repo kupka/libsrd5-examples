@@ -139,7 +139,7 @@ public partial class CharacterCreation {
                 nameValue = "";
                 namePlaceholder = "Too long";
             } else {
-                foreach (CharacterSheet sheet in Game.Characters) {
+                foreach (CharacterSheet sheet in Game.Party) {
                     if (sheet.Name == value) {
                         nameValue = "";
                         namePlaceholder = "Already taken";
@@ -147,7 +147,7 @@ public partial class CharacterCreation {
                     }
                 }
                 Game.SetName(hero, value);
-                Game.Characters.Add(hero);
+                Game.Party.Add(hero);
                 LoadScene("MainMenu");
             }
             focusNameInput = true;
